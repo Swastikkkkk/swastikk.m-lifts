@@ -471,6 +471,20 @@ footer{position:relative;overflow:hidden}
 /* ===== DRIVE ===== */
 #drive{position:relative;height:100svh;min-height:520px;overflow:hidden;background:#07080c;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--paper)}
 #drive.active{position:fixed;inset:0;z-index:150;height:100vh;height:100dvh}
+/* The trailing pointer ring. mix-blend-mode difference means it reads on the dark
+   sections and the paper ones without needing to know which it is over. */
+.cur-ring{position:fixed;top:0;left:0;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;
+  border:1px solid rgba(242,238,230,.45);pointer-events:none;z-index:9998;opacity:0;
+  mix-blend-mode:difference;will-change:transform}
+.cur-ring.on{border-color:rgba(242,238,230,.95);background:rgba(242,238,230,.10)}
+@media (hover:none),(pointer:coarse){.cur-ring{display:none}}
+/* The numbers strip: one long row, duplicated in JS and slid with a single transform. */
+.mq{overflow:hidden;border-block:1px solid var(--line);background:var(--ink);color:var(--paper);padding-block:16px}
+.mq-in{display:flex;width:max-content;will-change:transform}
+.mq-in>span{display:inline-flex;align-items:center;gap:26px;padding-right:26px;white-space:nowrap;
+  font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+.mq-in i{font-style:normal;color:var(--ox)}
+@media (prefers-reduced-motion:reduce){.cur-ring{display:none}}
 #dc{position:absolute;inset:0;width:100%;height:100%;display:block}
 /* A still of the world, shown while you are only looking at the section rather than
    driving it. The backdrop used to redraw the whole scene a few times a second, which
@@ -1291,6 +1305,11 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
   </div>
 </section>
 
+<!-- the numbers, on a loop -->
+<div class="mq" id="mq" aria-hidden="true"><div class="mq-in"><span>
+  68 → 102 kg <i>·</i> 520 kg total <i>·</i> 230 kg deadlift <i>·</i> heaviest conventional at MUJ <i>·</i>
+  natural <i>·</i> three days a week <i>·</i> 13 chapters <i>·</i> no shortcuts <i>·</i>
+</span></div></div>
 <section class="filter">
   <div class="ph"><img id="fImg" src="assets/img/fImg.jpg" alt="Swastik in a dark gym mirror"></div>
   <div class="tx">
@@ -2139,6 +2158,97 @@ if(G){
     scrollTrigger:{trigger:'.price',start:'top 85%',once:true}});
   gsap.from('.ig',{opacity:0,x:20,duration:.9,ease:'power3.out',
     scrollTrigger:{trigger:'.ig',start:'top 92%',once:true}});
+
+  /* ===================================================================
+     Pointer and scroll feel. All of this is desktop-and-mouse only and
+     sits behind the same G guard as everything else, so a phone, a
+     trackpad user who has asked for less motion, or a browser without
+     gsap all get the plain page and none of the work.
+     =================================================================== */
+  if(matchMedia('(hover:hover)').matches&&matchMedia('(pointer:fine)').matches){
+
+    /* --- the trailing ring --- it lags a little behind the real pointer, which is what
+       makes it read as a physical thing rather than a second cursor, and swells over
+       anything you can click. The native cursor is deliberately left alone: people fill
+       a form on this page, and taking their pointer away to look clever is a bad trade. */
+    const ring=document.createElement('div');
+    ring.className='cur-ring';document.body.appendChild(ring);
+    const rx=gsap.quickTo(ring,'x',{duration:.4,ease:'power3'}),
+          ry=gsap.quickTo(ring,'y',{duration:.4,ease:'power3'});
+    let curOn=false;
+    addEventListener('pointermove',e=>{
+      if(!curOn){curOn=true;gsap.to(ring,{opacity:1,duration:.35})}
+      rx(e.clientX);ry(e.clientY);
+    },{passive:true});
+    addEventListener('pointerdown',()=>gsap.to(ring,{scale:.75,duration:.18,ease:'power2.out'}));
+    addEventListener('pointerup',()=>gsap.to(ring,{scale:1,duration:.34,ease:'back.out(2)'}));
+    document.addEventListener('pointerover',e=>{
+      const hit=e.target.closest&&e.target.closest('a,button,summary,[role="button"]');
+      gsap.to(ring,{scale:hit?1.8:1,duration:.3,ease:'power3.out'});
+      ring.classList.toggle('on',!!hit);
+    },{passive:true});
+    addEventListener('blur',()=>gsap.to(ring,{opacity:0,duration:.2}));
+    addEventListener('pointerleave',()=>gsap.to(ring,{opacity:0,duration:.2}));
+
+    /* --- magnetic buttons --- the button leans towards the pointer while it is near,
+       and springs back the moment it leaves. Strength falls off with distance so it
+       is a pull, not a snap. */
+    $$('.btn,.dbtn,.lnk').forEach(el=>{
+      let raf=0;
+      const move=e=>{
+        if(raf)return;raf=requestAnimationFrame(()=>{raf=0;
+          const r=el.getBoundingClientRect();
+          const mx=e.clientX-(r.left+r.width/2),my=e.clientY-(r.top+r.height/2);
+          const reach=Math.max(r.width,r.height)*.9;
+          const pull=Math.max(0,1-Math.hypot(mx,my)/(reach*1.6));
+          gsap.to(el,{x:mx*.28*pull,y:my*.32*pull,duration:.5,ease:'power3.out'})})};
+      el.addEventListener('pointermove',move,{passive:true});
+      el.addEventListener('pointerleave',()=>gsap.to(el,{x:0,y:0,duration:.7,ease:'elastic.out(1,.45)'}));
+    });
+
+    /* --- scroll velocity skew --- the page leans a degree or two into the direction
+       you are scrolling and settles when you stop. Capped hard, because past about
+       four degrees it stops reading as momentum and starts reading as broken. */
+    {const skewables=$$('#work .rail, .tst, .plates, #nope, .steps3');
+     if(skewables.length){
+       let prev=scrollY,vel=0;
+       const setSkew=skewables.map(el=>gsap.quickSetter(el,'skewY','deg'));
+       const tick=()=>{
+         const y=scrollY,d=y-prev;prev=y;
+         vel+=(Math.max(-4,Math.min(4,d*.22))-vel)*.12;
+         if(Math.abs(vel)<.01)vel=0;
+         for(let i=0;i<setSkew.length;i++)setSkew[i](vel);
+       };
+       gsap.ticker.add(tick);
+     }}
+  }
+
+  /* --- the numbers strip --- an endless run of the things the page is actually
+     selling, drifting on its own and shoved along by the scroll. Runs on touch too:
+     it is one transform on one element, which is cheap enough anywhere. */
+  {const strip=$('#mq'),row=strip&&strip.querySelector('.mq-in');
+   const unit=row&&row.firstElementChild;
+   if(row&&unit){
+     /* Two copies of the same run of text, so as one slides out of frame the other is
+        already filling the gap. We slide the inner row and wrap it by exactly one
+        copy's width, which is why the seam never shows. */
+     row.appendChild(unit.cloneNode(true));
+     let x=0,boost=0,prev=scrollY;
+     const DRIFT=-38;                            // px per second, leftwards, on its own
+     const set=gsap.quickSetter(row,'x','px');
+     /* Width is measured on resize, never in the ticker: reading offsetWidth forces a
+        layout, and doing that every frame is exactly the kind of thing that turns a
+        cheap transform into a jank source. */
+     let w=unit.offsetWidth||1;
+     const remeasure=()=>{w=unit.offsetWidth||1};
+     addEventListener('resize',remeasure,{passive:true});
+     addEventListener('load',remeasure);
+     if(document.fonts&&document.fonts.ready)document.fonts.ready.then(remeasure).catch(()=>{});
+     gsap.ticker.add((t,dtms)=>{
+       const y=scrollY;boost+=((y-prev)*2.4-boost)*.08;prev=y;
+       x+=(DRIFT*(dtms/1000))-boost*(dtms/1000);
+       if(x<=-w)x+=w;else if(x>0)x-=w;
+       set(x)})}}
 }
 
 /* mobile CTA */
@@ -3263,6 +3373,34 @@ addEventListener('scroll',mcta,{passive:true});
     const top=new THREE.Mesh(new THREE.BoxGeometry(10,1.5,.45),ink);top.position.y=7.3;g.add(top);
     const lab=new THREE.Mesh(new THREE.PlaneGeometry(9.6,1.3),new THREE.MeshBasicMaterial({map:label('START · FINISH','one lap · beat the board',1024,150,false)}));
     lab.position.set(0,7.3,.26);g.add(lab);const l2=lab.clone();l2.rotation.y=Math.PI;l2.position.z=-.26;g.add(l2)})();
+  /* ---------- traffic lights ----------
+     Placed between chapters and clear of the two overtaking stretches, so they never
+     hold a car up in the middle of a story beat or fight the overtake logic. The AI
+     reads them: amber and red both bring a car down to a stop a few metres short of
+     the line, and it pulls away again when the light goes green. You are not forced
+     to stop — this is a story road, not a driving test — but the traffic behaves. */
+  const LIGHTS=[{u:.185,off:0},{u:.545,off:9.5}];
+  const L_CYCLE=20,L_GREEN=11,L_AMBER=2;
+  const lightPhase=(L,ts)=>{const t=((ts+L.off)%L_CYCLE+L_CYCLE)%L_CYCLE;
+    return t<L_GREEN?0:t<L_GREEN+L_AMBER?1:2};   // 0 green, 1 amber, 2 red
+  (function(){
+    const housing=M(0x15140f);
+    LIGHTS.forEach(L=>{
+      const q=faceAt(L.u,1,7,14);
+      const g=new THREE.Group();g.position.set(q.x,q.y,q.z);g.rotation.y=q.ry;S.add(g);
+      const pole=new THREE.Mesh(new THREE.CylinderGeometry(.09,.115,4.4,7),steel);pole.position.y=2.2;g.add(pole);
+      const box=new THREE.Mesh(new THREE.BoxGeometry(.52,1.34,.34),housing);box.position.set(0,4.15,.1);g.add(box);
+      const hood=new THREE.Mesh(new THREE.BoxGeometry(.6,.08,.42),housing);hood.position.set(0,4.86,.14);g.add(hood);
+      // top to bottom: red, amber, green
+      L.lamps=[0,1,2].map(k=>{
+        const m=new THREE.MeshBasicMaterial({color:0x201f1c,fog:true});
+        const s=new THREE.Mesh(new THREE.SphereGeometry(.14,10,8),m);
+        s.position.set(0,4.58-k*.42,.28);g.add(s);return m});
+      staticBox(q.x,q.y+2,q.z,.17,2,.17);
+      CULL.push(g)})})();
+  const L_ON=[0xe0352b,0xf0a828,0x35c05a],L_OFF=[0x2c1512,0x2b2412,0x13291a];
+  function updLights(ts){for(let i=0;i<LIGHTS.length;i++){const L=LIGHTS[i],ph=lightPhase(L,ts);
+    for(let k=0;k<3;k++)L.lamps[k].color.setHex(ph===k?L_ON[k]:L_OFF[k])}}
   /* ---------- traffic: other cars actually driving the loop ---------- */
   const traffic=[];
   (function(){
@@ -3297,6 +3435,15 @@ addEventListener('scroll',mcta,{passive:true});
         if(ahead>0&&ahead<13&&off<2.6)want=Math.max(1.2,t.base*(ahead/13));
         else if(OV&&ahead>-7&&ahead<36&&off<9)want=t.base*2.4;
         if(d2>150)want=t.base}
+      /* A light that is not green brings them down to a stop about four metres short
+         of it. The ramp is on distance rather than a hard brake, so they roll up to the
+         line and ease away again when it turns, instead of snapping to a halt. */
+      {let sd=Infinity;
+       for(let li=0;li<LIGHTS.length;li++){const L=LIGHTS[li];
+         if(lightPhase(L,now/1000)===0)continue;
+         let du=L.u-t.u;if(du<0)du+=1;
+         const d=du*TLEN;if(d<30&&d<sd)sd=d}
+       if(sd<30)want=Math.min(want,Math.max(0,(sd-4)/9)*t.base)}
       t.spd+=(want-t.spd)*Math.min(1,dt*1.4);
       t.u=(t.u+(t.spd*dt)/TLEN)%1;
       const yaw=Math.atan2(tg.x,tg.z);
@@ -3933,6 +4080,8 @@ addEventListener('scroll',mcta,{passive:true});
     const tt=now/1000;if(active)anims.forEach(a=>{const dd=Math.hypot(a.g.pos.x-car.position.x,a.g.pos.z-car.position.z);if(dd<70)a.pose(a.F,tt*a.speed)});
     rings.forEach(q=>{if(q.g.visible){q.ring.rotation.z+=dt*1.5;q.ring2.rotation.z-=dt*2.1}});
     if(active&&driving)updTraffic(dt,now);
+    // the lamps only need repainting a few times a second to read as changing
+    if(active&&frameN%5===0)updLights(now/1000);
     if(active)birds.forEach(b=>{b.a+=dt*b.sp;const x=POND.x+Math.cos(b.a)*b.r,z=POND.z+Math.sin(b.a)*b.r;b.g.position.set(x,b.y+Math.sin(tt*.6+b.a)*.6,z);b.g.rotation.y=-b.a+Math.PI/2;const fl=Math.sin(tt*9+b.a)*.9;b.wL.rotation.z=fl;b.wR.rotation.z=-fl});
     if(active)for(let ci=0;ci<critters.length;ci++){const c=critters[ci];
       const near2=active?Math.hypot(car.position.x-c.g.position.x,car.position.z-c.g.position.z):999;
