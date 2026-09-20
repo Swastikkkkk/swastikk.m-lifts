@@ -816,7 +816,11 @@ html.driving #bubble{left:88px;bottom:125px}
   .plates .pl-i:nth-child(4),.plates .pl-i:nth-child(5){grid-column:span 1}
         #load .cap{display:none}
   .two,.trans-grid,.filter,.apply-grid{grid-template-columns:1fr}
-  .frame{order:-1;aspect-ratio:2/3;max-height:70svh;height:auto}
+  /* The photos are 9:16 portraits. Cropping them to fit a box lost the face and arms;
+     making the box tall enough to avoid that made it fill the screen. So on a phone the
+     box stays modest and the whole photo is fitted inside it instead of cropped to it. */
+  .frame{order:-1;aspect-ratio:3/4;max-height:48svh;height:auto}
+  .frame img{object-fit:contain}
   #trans .lede{display:none}
   .row{grid-template-columns:44px 1fr;gap:10px 14px}
   .row>div{grid-column:2}
