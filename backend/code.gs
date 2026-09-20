@@ -60,13 +60,13 @@ function saveApplication_(body) {
 
   var row = header.map(function (h, i) {
     if (i === 0) return new Date();
-    return byLabel[h] !== undefined ? byLabel[h] : (body[h] !== undefined ? body[h] : '');
+    return textCell_(byLabel[h] !== undefined ? byLabel[h] : (body[h] !== undefined ? body[h] : ''));
   });
   // Any brand new question gets appended rather than dropped.
   answers.forEach(function (a) {
     if (header.indexOf(a.label) === -1) {
       sh.getRange(1, sh.getLastColumn() + 1).setValue(a.label);
-      row.push(a.value);
+      row.push(textCell_(a.value));
     }
   });
   sh.appendRow(row);
@@ -116,6 +116,15 @@ function topLaps_(n) {
 }
 
 /* ------------------------------------------------------------------- utils */
+
+/* A WhatsApp number like "+919876543210" starts with "+", which Sheets reads as
+   the start of a formula and rejects with a parse error. Leading a value with an
+   apostrophe is Sheets' own escape for "store this literally, as text" — it is
+   stripped from what's displayed, so the cell still just shows the number. */
+function textCell_(v) {
+  if (typeof v === 'string' && /^[+=\-@]/.test(v)) return "'" + v;
+  return v;
+}
 
 function sheet_(name) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
