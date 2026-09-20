@@ -1963,10 +1963,15 @@ addEventListener('scroll',mcta,{passive:true});
   async function pullBoard(){if(!backendReady())return;
     try{const r=await fetch(cfg().SCRIPT_URL+'?board=1',{method:'GET'});const d=await r.json();
       if(d&&Array.isArray(d.laps)){remoteRows=d.laps.filter(l=>l&&isFinite(l.ms));renderBoard()}}catch(e){}}
+  /* This used to report success the moment the request came back at all, without ever
+     looking at what the server said. The sheet could reply "implausible lap" and the
+     button would still say Saved, so a time that never reached the board looked like it
+     had. Read the answer and tell the truth about it. */
   async function pushLap(entry){if(!backendReady())return false;
-    try{await fetch(cfg().SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    try{const r=await fetch(cfg().SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({key:cfg().SECRET_KEY,type:'lap',name:entry.n,ms:entry.ms,vehicle:entry.veh,at:new Date().toISOString()})});
-      return true}catch(e){return false}}
+      const t=await r.text();let d={};try{d=JSON.parse(t)}catch(e){}
+      return !!(r.ok&&d.ok!==false)}catch(e){return false}}
   function openBoard(){boardEl.classList.add('on');try{bdName.value=localStorage.getItem('sl_name')||''}catch(e){}
     bdSave.disabled=!pendingMs;renderBoard();pullBoard()}
   function closeBoard(){boardEl.classList.remove('on')}
@@ -1977,9 +1982,13 @@ addEventListener('scroll',mcta,{passive:true});
     const entry={n:nm,ms:pendingMs,veh:V.label,at:Date.now()};
     LAPS.push(entry);LAPS.sort((a,b)=>a.ms-b.ms);LAPS=LAPS.slice(0,8);
     try{localStorage.setItem('sl_laps',JSON.stringify(LAPS))}catch(e){}
-    bdSave.disabled=true;bdSave.textContent='Saved';
-    const ok=await pushLap(entry);if(ok)pullBoard();
-    renderBoard();setTimeout(()=>{bdSave.textContent='Save my time'},1600)};
+    bdSave.disabled=true;bdSave.textContent='Saving…';
+    const ok=await pushLap(entry);
+    /* Either way the time is already in this browser, so say which of the two it is
+       rather than claiming the shared board took it when it did not. */
+    bdSave.textContent=ok?'Saved':'Saved on this device';
+    if(ok)pullBoard();
+    renderBoard();setTimeout(()=>{bdSave.textContent='Save my time'},1900)};
   function lapDone(ms){
     lastMs=ms;pendingMs=ms;
     const isBest=ms<bestMs;if(isBest)bestMs=ms;

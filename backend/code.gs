@@ -86,8 +86,12 @@ function saveApplication_(body) {
 
 function saveLap_(body) {
   var ms = Number(body.ms);
-  // Sanity bounds: a real lap of this circuit cannot be under 25s or over 10 minutes.
-  if (!isFinite(ms) || ms < 25000 || ms > 600000) return { ok: false, error: 'implausible lap' };
+  /* Sanity bounds. The circuit is about 500 metres and the car will do 111 km/h, so a
+     quick lap is high teens and a tidy one low twenties. The old floor of 25s was above
+     that, which meant every genuine lap came back "implausible" and the leaderboard
+     could never fill. 11s is under even a perfect flat-out lap, so it still catches
+     anything fabricated without rejecting real driving. */
+  if (!isFinite(ms) || ms < 11000 || ms > 600000) return { ok: false, error: 'implausible lap' };
   var sh = sheet_(LAPS_SHEET);
   if (sh.getLastRow() === 0) {
     sh.appendRow(['Set at', 'Name', 'Milliseconds', 'Lap time', 'Vehicle']);
