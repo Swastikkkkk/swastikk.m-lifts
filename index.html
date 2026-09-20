@@ -2448,7 +2448,14 @@ addEventListener('scroll',mcta,{passive:true});
   const gM=new CANNON.Material('g'),oM=new CANNON.Material('o');world.addContactMaterial(new CANNON.ContactMaterial(gM,oM,{friction:.5,restitution:.1}));
   // no infinite ground plane: the world heightfield below is the only ground, which is what lets the pond have a real bed
   const BOUND=192;[[BOUND,0,0,.5,8,BOUND],[-BOUND,0,0,.5,8,BOUND],[0,0,BOUND,BOUND,8,.5],[0,0,-BOUND,BOUND,8,.5]].forEach(([x,y,z,a,b,c])=>{const w=new CANNON.Body({mass:0});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);world.addBody(w)});
-  const WS=205,ES=2; // heightfield half-extent + grid spacing; declared early because the branch/summit road below needs it
+  /* Heightfield half-extent and grid spacing, declared early because the branch and
+     summit road below need them. The terrain is one mesh that is never frustum culled,
+     so its vertex count is paid on every single frame: at ES=2 a world this size is
+     42k vertices, which is what made the bigger map stutter. Coarsening the grid is
+     far cheaper than shrinking the world, and the roads survive it because their
+     corridor is flattened ten metres wide either side and the tarmac is drawn from
+     this same field, so the road can never disagree with the ground it sits on. */
+  const WS=205,ES=LOW?3:2.5;
   const dyn=[];
   function staticBox(x,y,z,a,b,c,ry=0){const w=new CANNON.Body({mass:0,material:oM});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);w.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);world.addBody(w);return w}
   function dynBox(mesh,x,y,z,a,b,c,mass,ry=0){const bd=new CANNON.Body({mass,material:oM});bd.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));bd.position.set(x,y,z);bd.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);bd.angularDamping=.5;bd.linearDamping=.2;bd.sleepSpeedLimit=.3;world.addBody(bd);mesh.position.set(x,y,z);mesh.rotation.y=ry;S.add(mesh);dyn.push({mesh,body:bd,home:new CANNON.Vec3(x,y,z),q:bd.quaternion.clone()});return bd}
@@ -3437,7 +3444,9 @@ addEventListener('scroll',mcta,{passive:true});
      the lever arm that gives you grows the further you drive from spawn — which reads as
      the car spontaneously backflipping off a jump. Pass chassisB.position for a force
      through the centre of mass, or the actual contact point to apply it at a wheel. */
-  const bodyUp=new CANNON.Vec3();
+  const bodyUp=new CANNON.Vec3(),UPV=new CANNON.Vec3(0,1,0),fScratch=new CANNON.Vec3(),
+        lvScratch=new CANNON.Vec3(),qScratch=new CANNON.Quaternion(),fwdScratch=new CANNON.Vec3(),
+        wComp=[0,0,0,0],wLoad=[0,0,0,0];
   // visuals
   const vis={car:new THREE.Group()};car.add(vis.car);
   const add=(g,geo,m,x,y,z,sh=true)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=sh;g.add(o);return o};
@@ -3720,7 +3729,7 @@ addEventListener('scroll',mcta,{passive:true});
          hard at 90 as it did from rest and then hit a wall. This is the shape a gearbox
          actually gives you: strong off the line, tapering as the revs run out. */
       // pitch: +1 nose-down (descending), -1 nose-up. Taken from the chassis forward axis.
-      const fwd=new CANNON.Vec3(0,0,1);chassisB.quaternion.vmult(fwd,fwd);
+      const fwd=fwdScratch;fwd.set(0,0,1);chassisB.quaternion.vmult(fwd,fwd);
       const grade=Math.max(0,-fwd.y);
       /* Tractive force. The engine is deliberately modest now — it used to be strong enough
          to reach 60 km/h in under a second, which is why the smallest touch of throttle sent
@@ -3764,12 +3773,12 @@ addEventListener('scroll',mcta,{passive:true});
       if(sub>0){
         // buoyancy scales with how submerged it is and is capped under its own weight, so it wallows instead of taking off
         const lift=chassisB.mass*24*sub*.88;
-        chassisB.applyForce(new CANNON.Vec3(0,lift,0),chassisB.position);
+        fScratch.set(0,lift,0);chassisB.applyForce(fScratch,chassisB.position);
         // water grabs the hull: kill spin and sideways slide
         const av=chassisB.angularVelocity,k=Math.min(.55,sub*9*dt);av.x-=av.x*k;av.z-=av.z*k;av.y-=av.y*k*.5;
         // quadratic drag, so wading has real weight to it
         const v=chassisB.velocity,vs=v.length();
-        if(vs>.05){const dq=Math.min(chassisB.mass*13,vs*vs*7.5)*sub;chassisB.applyForce(new CANNON.Vec3(-v.x/vs*dq,-v.y/vs*dq*.4,-v.z/vs*dq),chassisB.position)}
+        if(vs>.05){const dq=Math.min(chassisB.mass*13,vs*vs*7.5)*sub;fScratch.set(-v.x/vs*dq,-v.y/vs*dq*.4,-v.z/vs*dq);chassisB.applyForce(fScratch,chassisB.position)}
         if(now-pondToast>6000){pondToast=now;toastMsg(sub>.6?'Wading through, take it slow':'Careful, shallow water')}}
       /* ---------- chassis dynamics ----------
          Three things a raycast vehicle does not give you for free, and all three are
@@ -3779,20 +3788,24 @@ addEventListener('scroll',mcta,{passive:true});
          the harder the floor is pressed into the road. And tyre grip that scales with how
          hard each wheel is actually loaded — a wheel that has gone light in a corner now
          gives up grip the way a real one does, which is where the understeer comes from. */
+      /* Everything below reuses scratch vectors and arrays held outside the loop. This
+         block runs sixty times a second, and the version that allocated a dozen Vec3s
+         and two arrays per frame handed the collector a steady drip of garbage for no
+         reason — which is exactly the kind of thing that shows up as stutter. */
       {const wi=veh.wheelInfos,STATIC=chassisB.mass*Math.abs(world.gravity.y)/4;
-       chassisB.quaternion.vmult(new CANNON.Vec3(0,1,0),bodyUp);
-       const comp=[],load=[];
+       UPV.set(0,1,0);chassisB.quaternion.vmult(UPV,bodyUp);
        for(let i=0;i<wi.length;i++){const w=wi[i],rest=w.suspensionRestLength||1;
          const sf=+w.suspensionForce;
-         load.push(w.isInContact&&isFinite(sf)?Math.max(0,sf):0);
-         comp.push(w.isInContact?Math.max(0,Math.min(1,w.suspensionLength/rest)):1)}
-       // anti-roll bars — front axle is wheels 0/1, rear is 2/3
-       if(!inPond){[[0,1,ARB_F],[2,3,ARB_R]].forEach(([l,r,k])=>{
+         wLoad[i]=w.isInContact&&isFinite(sf)?Math.max(0,sf):0;
+         wComp[i]=w.isInContact?Math.max(0,Math.min(1,w.suspensionLength/rest)):1}
+       // anti-roll bars — front axle is wheels 0/1, rear is 2/3. Unrolled, so no closure per frame.
+       if(!inPond)for(let ax=0;ax<2;ax++){
+         const l=ax*2,r=l+1,k=ax?ARB_R:ARB_F;
          // both wheels on the axle have to be down, or landing off a ramp gets jumpy
-         if(!wi[l].isInContact||!wi[r].isInContact||!wi[l].raycastResult||!wi[r].raycastResult)return;
-         const fN=(comp[l]-comp[r])*k;if(!isFinite(fN)||Math.abs(fN)<1)return;
-         chassisB.applyForce(bodyUp.scale(-fN),wi[l].raycastResult.hitPointWorld);
-         chassisB.applyForce(bodyUp.scale(fN),wi[r].raycastResult.hitPointWorld)})}
+         if(!wi[l].isInContact||!wi[r].isInContact||!wi[l].raycastResult||!wi[r].raycastResult)continue;
+         const fN=(wComp[l]-wComp[r])*k;if(!isFinite(fN)||Math.abs(fN)<1)continue;
+         bodyUp.scale(-fN,fScratch);chassisB.applyForce(fScratch,wi[l].raycastResult.hitPointWorld);
+         bodyUp.scale(fN,fScratch);chassisB.applyForce(fScratch,wi[r].raycastResult.hitPointWorld)}
        /* Aero is drag only, applied at the centre of mass so it cannot pitch the car.
           Downforce was tried and thrown out: on springs this soft it squashed the
           suspension until the floor grounded out, which cost half the top speed and
@@ -3802,13 +3815,13 @@ addEventListener('scroll',mcta,{passive:true});
        if(!inPond){const vv=chassisB.velocity,vs=Math.hypot(vv.x,vv.z);
          if(vs>.5&&isFinite(vs)){
            const dg=Math.min(chassisB.mass*8,vs*vs*AERO_DRAG);
-           chassisB.applyForce(new CANNON.Vec3(-vv.x/vs*dg,0,-vv.z/vs*dg),chassisB.position)}}
-       const localVel=chassisB.velocity.clone();chassisB.quaternion.conjugate().vmult(localVel,localVel);
-       const lateral=Math.min(1,Math.abs(localVel.x)/8),rearGrip=key.h?.58:1,
+           fScratch.set(-vv.x/vs*dg,0,-vv.z/vs*dg);chassisB.applyForce(fScratch,chassisB.position)}}
+       lvScratch.copy(chassisB.velocity);chassisB.quaternion.conjugate(qScratch);qScratch.vmult(lvScratch,lvScratch);
+       const lateral=Math.min(1,Math.abs(lvScratch.x)/8),rearGrip=key.h?.58:1,
              grip=V.slip*wx.slip*(1-sub*.72)*(1+grade*.55)*(1+lateral*.22);
        for(let i=0;i<wi.length;i++){
          // load sensitivity: grip climbs with load, but slower than the load does
-         const lr=STATIC>0?load[i]/STATIC:1;
+         const lr=STATIC>0?wLoad[i]/STATIC:1;
          const ls=wi[i].isInContact?Math.max(.4,Math.pow(Math.min(LOAD_CAP,lr),LOAD_EXP)):1;
          wi[i].frictionSlip=grip*(i>1?rearGrip:1)*(isFinite(ls)?ls:1)}
        // nothing above is allowed to hand the solver a NaN — that is what used to launch the car
@@ -3818,7 +3831,7 @@ addEventListener('scroll',mcta,{passive:true});
       world.step(1/60,dt,3);
       const dv=tmp.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z).sub(lastV).length();lastV.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z);if(dv>7){shake=Math.min(1,dv/25);blip(90,.25,.15)}
       if(chassisB.position.y<-9||!isFinite(chassisB.position.y)||!isFinite(chassisB.velocity.x)){resetCar();toastMsg('Pulled you back onto the road')}
-      const up=new CANNON.Vec3(0,1,0);chassisB.quaternion.vmult(up,up);if(up.y<.25){flipT+=dt;if(flipT>1.8){resetCar();flipT=0;toastMsg('Back on the road, lock in')}}else flipT=0;
+      UPV.set(0,1,0);const up=bodyUp;chassisB.quaternion.vmult(UPV,up);if(up.y<.25){flipT+=dt;if(flipT>1.8){resetCar();flipT=0;toastMsg('Back on the road, lock in')}}else flipT=0;
       if(f||b||l||rr||Math.abs(tiltSteer)>.12)idleT=0;else{idleT+=dt;if(idleT>10){idleT=-999;toastMsg(TOUCH?'Hold GAS on the right':'W to drive. Follow the arrow.')}}
       if(frameN%4===0){let best=1e9,bi=0;for(let i=0;i<=N;i+=2){const d=(SAMP[i].x-chassisB.position.x)**2+(SAMP[i].z-chassisB.position.z)**2;if(d<best){best=d;bi=i}}const u=bi/N;if(best<60&&(u>progU||u<progU-.5))progU=u;prog.geometry.setDrawRange(0,Math.floor(progU*N)*6);if(frameN%16===0)lamps.forEach(L=>{L.bulb.material.color.setHex(L.u<=progU?0xf2eee6:0x3a3733)});
         const summitD=Math.hypot(car.position.x-PEAK.x,car.position.z-PEAK.z);
