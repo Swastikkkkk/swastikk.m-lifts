@@ -799,7 +799,7 @@ html.driving #bubble{left:88px;bottom:125px}
 /* ===== GALLERY ===== */
 .rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,235px);gap:clamp(12px,1.6vw,20px);margin-top:clamp(36px,4vw,60px);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:thin}
 .rail figure{margin:0;scroll-snap-align:start}
-.rail img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;filter:grayscale(.35) contrast(1.04);transition:filter .5s,transform .6s cubic-bezier(.2,.8,.2,1)}
+.rail img{width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;display:block;filter:grayscale(.35) contrast(1.04);transition:filter .5s,transform .6s cubic-bezier(.2,.8,.2,1)}
 .rail figure:hover img{filter:none;transform:translateY(-4px)}
 .rail figcaption{margin-top:12px;color:var(--mute)}
 @media (max-width:900px){.rail{grid-auto-columns:minmax(150px,56%)}}
