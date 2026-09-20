@@ -2260,6 +2260,66 @@ addEventListener('scroll',mcta,{passive:true});
     else if(!on&&hornOn){hornOn=false;if(hornNodes){const {g,oscs}=hornNodes;g.gain.setTargetAtTime(0,AC.currentTime,.04);setTimeout(()=>{try{oscs.forEach(o=>o.stop());g.disconnect()}catch(e){}},200);hornNodes=null}}
   }catch(e){}}
   let hornNodes=null;
+  /* Not listed on the controls, not in the guide, not in the menu. Loud and sudden on
+     purpose, but it goes through a hard limiter and the picture never strobes: a
+     black/white flicker at that rate is a seizure risk, and the fright comes from the
+     cut and the noise anyway, not from hammering the output. Honours the sound toggle,
+     and will not fire again for eight seconds. */
+  let egT=0;
+  function eg(){
+    const tn=performance.now();if(tn-egT<8000)return;egT=tn;
+    if(AC&&!muted)try{
+      const t0=AC.currentTime;
+      const lim=AC.createDynamicsCompressor();
+      lim.threshold.value=-9;lim.knee.value=0;lim.ratio.value=20;lim.attack.value=.001;lim.release.value=.12;
+      lim.connect(AC.destination);
+      const out=AC.createGain();out.connect(lim);
+      out.gain.setValueAtTime(0,t0);
+      out.gain.linearRampToValueAtTime(.8,t0+.01);
+      out.gain.setValueAtTime(.8,t0+.42);
+      out.gain.exponentialRampToValueAtTime(.0001,t0+1.15);
+      const sh=AC.createWaveShaper();
+      {const n=1024,c=new Float32Array(n);
+       for(let i=0;i<n;i++){const x=i*2/n-1;c[i]=(1+22)*x*20*Math.PI/180/(Math.PI+22*Math.abs(x))}
+       sh.curve=c;sh.oversample='2x';sh.connect(out)}
+      // the crack that makes you flinch
+      {const len=Math.floor(AC.sampleRate*.45),b=AC.createBuffer(1,len,AC.sampleRate),d=b.getChannelData(0);
+       for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.1);
+       const s=AC.createBufferSource();s.buffer=b;
+       const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2700;bp.Q.value=.6;
+       s.connect(bp);bp.connect(sh);s.start(t0)}
+      // a semitone-crushed cluster falling away underneath it
+      [92,97,139,146,233].forEach((f,i)=>{
+        const o=AC.createOscillator();o.type=i%2?'sawtooth':'square';
+        o.frequency.setValueAtTime(f*3.1,t0);
+        o.frequency.exponentialRampToValueAtTime(f*.55,t0+1);
+        const g=AC.createGain();g.gain.value=.2;
+        o.connect(g);g.connect(sh);o.start(t0);o.stop(t0+1.2)});
+      // and the shriek over the top
+      {const o=AC.createOscillator();o.type='sawtooth';
+       o.frequency.setValueAtTime(1900,t0);
+       o.frequency.exponentialRampToValueAtTime(300,t0+.5);
+       const g=AC.createGain();g.gain.setValueAtTime(.26,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+.58);
+       o.connect(g);g.connect(sh);o.start(t0);o.stop(t0+.62)}
+    }catch(e){}
+    try{
+      const box=document.createElement('div');
+      box.style.cssText='position:fixed;inset:0;z-index:99999;background:#000;pointer-events:none;overflow:hidden;contain:strict';
+      const src=document.getElementById('gp13')||document.getElementById('gp1')||document.getElementById('heroImg');
+      const im=document.createElement('img');
+      if(src)im.src=src.currentSrc||src.src;
+      im.style.cssText='position:absolute;inset:-12%;width:124%;height:124%;object-fit:cover;'+
+        'filter:grayscale(1) contrast(3.4) brightness(1.45) invert(1);will-change:transform';
+      box.appendChild(im);document.body.appendChild(box);
+      const s0=performance.now();
+      (function j(){
+        const k=(performance.now()-s0)/900;
+        if(k>=1){box.remove();return}
+        const a=1-k;
+        im.style.transform='translate('+((Math.random()-.5)*30*a)+'px,'+((Math.random()-.5)*30*a)+'px) scale('+(1.04+Math.random()*.12*a)+') rotate('+((Math.random()-.5)*2.6*a)+'deg)';
+        if(k>.8)box.style.opacity=String((1-k)/.2);
+        requestAnimationFrame(j)})();
+    }catch(e){}}
   mute.onclick=()=>{muted=!muted;mute.textContent=muted?'Sound off':'Sound on'};
   {const nb=$('#dnight');if(nb)nb.onclick=()=>toggleNight()}
   /* ---------- input ---------- */
@@ -2288,7 +2348,7 @@ addEventListener('scroll',mcta,{passive:true});
     return {drag:d,fog:f,tint:[t0,t1,t2]}}
   const key={};
   const KMAP={ArrowUp:'f',KeyW:'f',ArrowDown:'b',KeyS:'b',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',Space:'h',ShiftLeft:'boost',ShiftRight:'boost',KeyH:'horn'};
-  addEventListener('keydown',e=>{if(!active)return;if(e.code==='Escape'){if(boardEl.classList.contains('on'))closeBoard();else if(viewer.classList.contains('on'))closeViewer();else if(recapEl&&recapEl.el.style.display!=='none')closeSummitRecap();else if(bigmap.classList.contains('on'))toggleMap();else if(cineOn)endCine();else exitDrive();return}if(cineOn){if(e.code==='Space')endCine();return}if(!driving)return;if(e.code==='KeyM'){toggleMap();return}if(e.code==='KeyN'){toggleNight();return}if(e.code==='KeyR'){resetCar();return}if(e.code==='KeyE'||e.code==='Enter'){interact();return}if(e.code==='KeyL'){startRace();return}if(e.code==='KeyB'){boardEl.classList.contains('on')?closeBoard():openBoard();return}const k=KMAP[e.code];if(!k)return;key[k]=1;e.preventDefault()});
+  addEventListener('keydown',e=>{if(!active)return;if(e.code==='Escape'){if(boardEl.classList.contains('on'))closeBoard();else if(viewer.classList.contains('on'))closeViewer();else if(recapEl&&recapEl.el.style.display!=='none')closeSummitRecap();else if(bigmap.classList.contains('on'))toggleMap();else if(cineOn)endCine();else exitDrive();return}if(cineOn){if(e.code==='Space')endCine();return}if(!driving)return;if(e.code==='KeyM'){toggleMap();return}if(e.code==='KeyT'){eg();return}if(e.code==='KeyN'){toggleNight();return}if(e.code==='KeyR'){resetCar();return}if(e.code==='KeyE'||e.code==='Enter'){interact();return}if(e.code==='KeyL'){startRace();return}if(e.code==='KeyB'){boardEl.classList.contains('on')?closeBoard():openBoard();return}const k=KMAP[e.code];if(!k)return;key[k]=1;e.preventDefault()});
   addEventListener('keyup',e=>{const k=KMAP[e.code];if(k)key[k]=0});
   function hold(el,k){const on=e=>{e.preventDefault();key[k]=1;el.classList.add('dn');try{el.setPointerCapture(e.pointerId)}catch(_){}if(navigator.vibrate)navigator.vibrate(8)};const off=()=>{key[k]=0;el.classList.remove('dn')};el.addEventListener('pointerdown',on);['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,off));el.addEventListener('contextmenu',e=>e.preventDefault())}
   hold($('#dL'),'l');hold($('#dR'),'r');hold($('#dgas'),'f');hold($('#dbrk'),'b');hold($('#dboost'),'boost');
