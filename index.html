@@ -472,6 +472,11 @@ footer{position:relative;overflow:hidden}
 #drive{position:relative;height:100svh;min-height:520px;overflow:hidden;background:#07080c;border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--paper)}
 #drive.active{position:fixed;inset:0;z-index:150;height:100vh;height:100dvh}
 #dc{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* A still of the world, shown while you are only looking at the section rather than
+   driving it. The backdrop used to redraw the whole scene a few times a second, which
+   read as a stutter; this is the same picture, held. */
+#dposter{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;pointer-events:none}
+#drive.active #dposter{display:none!important}
 .dover{position:absolute;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,rgba(11,11,10,.38),rgba(11,11,10,.7));pointer-events:none}
 .dover>div{text-align:center;pointer-events:auto;padding:0 20px}
 .dover h2{margin:0 0 8px;font-family:var(--serif);font-weight:600;font-size:clamp(44px,7vw,110px);line-height:.95;letter-spacing:-.034em}
@@ -3702,17 +3707,38 @@ addEventListener('scroll',mcta,{passive:true});
   const camT=new THREE.Vector3(),look=new THREE.Vector3(),fwd=new THREE.Vector3(),tmp=new THREE.Vector3(),lastV=new THREE.Vector3();
   let last=performance.now(),flipT=0,frameN=0,spdS=0,shake=0,idleT=0,cineOn=false,inPond=false,sub=0,pondToast=0,liftShown=false,missHint=false,airT=0;
   let act=-1,chapEase=0,camRoll=0;const lookT=new THREE.Vector3();
-  let idleLast=0,idleLow=false;
+  /* ---------- the idle backdrop ----------
+     Before you press Start, this section is a picture of a world, not a world you are
+     in: the car does not move and nothing is being driven. It used to keep redrawing
+     the whole scene a few times a second to show that, which is far too slow to read
+     as motion and far too much work to be free — it just looked like the page was
+     struggling. So it now renders a handful of frames to let the lighting settle, keeps
+     one of them as a still, and then stops rendering altogether until you actually
+     start the engine. If grabbing the still ever fails we fall back to the old
+     throttled redraw rather than leaving an empty canvas. */
+  let idleLast=0,idleLow=0,posterState=0,posterWarm=0,wasActive=false;
+  const poster=document.createElement('img');
+  poster.id='dposter';poster.alt='';poster.decoding='async';
+  if(cv.insertAdjacentElement)cv.insertAdjacentElement('afterend',poster);
   function loop(now){requestAnimationFrame(loop);
     const r=sec.getBoundingClientRect();
+    if(active!==wasActive){
+      wasActive=active;
+      if(active){poster.style.display='none'}
+      else{posterState=0;posterWarm=0}   // take a fresh still: the weather may have moved on
+    }
     if(!active){
-      // Not driving: this is a backdrop behind the overlay, nothing more. It used to render
-      // the entire world at full resolution on every frame you scrolled past it.
       if(r.bottom<0||r.top>innerHeight||document.hidden){last=now;return}
-      if(now-idleLast<(LOW?240:130)){last=now;return}
-      idleLast=now;
-      if(!idleLow){idleLow=true;R.setPixelRatio(Math.min(devicePixelRatio,.6));R.setSize(W,H,false)}
-    }else if(idleLow){idleLow=false;applyQ()}
+      if(posterState===1){last=now;return}          // the still is up; there is nothing to draw
+      // 1 = warming up for the still, rendered near full res so it is not a blurry one.
+      // 2 = the still failed, so fall back to the old low-res throttled redraw.
+      if(posterState===0&&posterWarm<4){
+        if(idleLow!==1){idleLow=1;R.setPixelRatio(Math.min(devicePixelRatio||1,1));R.setSize(W,H,false)}}
+      else{
+        if(now-idleLast<(LOW?240:130)){last=now;return}
+        idleLast=now;
+        if(idleLow!==2){idleLow=2;R.setPixelRatio(Math.min(devicePixelRatio,.6));R.setSize(W,H,false)}}
+    }else if(idleLow){idleLow=0;applyQ()}
     const dt=Math.min(.1,(now-last)/1000);last=now;frameN++;
     watchFps(dt);
     const sp=chassisB.velocity.length();
@@ -4019,6 +4045,13 @@ addEventListener('scroll',mcta,{passive:true});
      hemi.intensity+=(hemi0*lt-hemi.intensity)*e;sun.intensity+=(sunI0*Math.min(1.25,lt)-sun.intensity)*e}
     if(R.shadowMap.enabled){const se=ULTRA.shEvery;if(se&&frameN%se===0)sun.shadow.needsUpdate=true}
     R.render(S,C);if(active&&frameN%6===0)drawMap(mx2,mm.width,false);
+    /* Grab the still immediately after the draw, in this same frame: the drawing buffer
+       is not preserved past the end of it, so this is the only moment it can be read. */
+    if(!active&&posterState===0&&++posterWarm>=4){
+      try{const url=cv.toDataURL('image/jpeg',.86);
+        if(url&&url.length>2048){poster.src=url;poster.style.display='block';posterState=1}
+        else posterState=2}
+      catch(e){posterState=2}}
   }
   requestAnimationFrame(loop);
   /* ---------- cinematic ---------- */
