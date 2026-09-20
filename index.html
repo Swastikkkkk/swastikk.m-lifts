@@ -2267,7 +2267,7 @@ addEventListener('scroll',mcta,{passive:true});
      photos:[]},
   ];
   const VEHS={
-    car:{label:'Car',engine:2100,max:28,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
+    car:{label:'Car',engine:650,max:28,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
   };
   const WEATHERS=[
     {id:'day',label:'Day',bg:0x9dc0dd,fog:[110,300],hemi:.62,sun:0xfff7e8,sunI:1.12,ground:0x5c6b44,leaf:0x39672b,part:null,slip:1,skyTop:0x4a86c6,skyBottom:0xc3d9ea,star:0,sunA:.7,terr:[1.06,1.1,.98],snow:0,water:0x2f6f8c,ridge:[.46,.53,.62]},
@@ -2497,7 +2497,13 @@ addEventListener('scroll',mcta,{passive:true});
   // match the branch's road texture density to the main loop's (34 repeats over its full length)
   const BR_REP=34*(brCurve.getLength()/curve.getLength());
   const brSmooth=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
-  function brHAt(u){if(u<=U_YARD)return BR_H;return BR_H+(PEAK_H-BR_H)*brSmooth((u-U_YARD)/(1-U_YARD))}
+  /* The climb finishes at U_TOP rather than at the very end of the curve, so the last
+     stretch of road is already level at PEAK_H by the time it reaches the lookout's flat
+     pad. Running the rise all the way to u=1 left the road still climbing into ground
+     that had already been flattened, and the two met in a step. */
+  const U_TOP=.93;
+  function brHAt(u){if(u<=U_YARD)return BR_H;
+    return BR_H+(PEAK_H-BR_H)*brSmooth(Math.min(1,(u-U_YARD)/Math.max(.001,U_TOP-U_YARD)))}
   const bAt=u=>{const uc=Math.max(0,Math.min(1,u));const p=brCurve.getPointAt(uc),tg=brCurve.getTangentAt(Math.max(.001,Math.min(.999,uc)));p.y=brHAt(uc);return {p,tg,n:new THREE.Vector3(-tg.z,0,tg.x)}};
   const SM=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
   const LRP=(a,b,t)=>a+(b-a)*t;
@@ -2659,8 +2665,16 @@ addEventListener('scroll',mcta,{passive:true});
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
   // same recipe as strip(), but walks the short branch spur instead of the main loop
+  /* The branch road is laid on the heightfield itself rather than on the ideal curve
+     height. The two are not the same thing: roadNear quantises u to one of BN steps and
+     the field is sampled on a 2m grid, and up at the summit the lookout's pad flattens
+     the ground to PEAK_H while the curve is still climbing towards it. Drawing the ideal
+     height left the tarmac and the surface you actually drive on disagreeing by up to
+     half a metre on the climb, which is what put the car underneath the road. Sampling
+     HF.h per vertex means the road cannot disagree with the ground by construction. */
   function stripB(w,yo,mat){const pos=[],idx=[],uv=[];for(let i=0;i<=BN;i++){const {p,n}=bAt(i/BN);n.multiplyScalar(w/2);
-      pos.push(p.x-n.x,p.y+yo,p.z-n.z,p.x+n.x,p.y+yo,p.z+n.z);uv.push(0,i/BN*BR_REP,1,i/BN*BR_REP);
+      const lx=p.x-n.x,lz=p.z-n.z,rx=p.x+n.x,rz=p.z+n.z;
+      pos.push(lx,HF.h(lx,lz)+yo,lz,rx,HF.h(rx,rz)+yo,rz);uv.push(0,i/BN*BR_REP,1,i/BN*BR_REP);
       if(i<BN){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
@@ -2672,7 +2686,7 @@ addEventListener('scroll',mcta,{passive:true});
   // lane dashes (instanced)
   (function(){const cnt=Math.floor(N/5)*2;const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.3),M(0xd8d2c2),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<N;i+=5){const {p,tg,n}=at(i/N);for(const s of [1,-1]){o.position.set(p.x+n.x*2.5*s,p.y+.1,p.z+n.z*2.5*s);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();if(k<cnt)im.setMatrixAt(k++,o.matrix)}}im.count=k;S.add(im)})();
   // same lane dashes, laid down the branch spur
-  (function(){const cnt=Math.floor(BN/4)*2;const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.3),M(0xd8d2c2),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<BN;i+=4){const {p,tg,n}=bAt(i/BN);for(const s of [1,-1]){o.position.set(p.x+n.x*2.2*s,p.y+.1,p.z+n.z*2.2*s);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();if(k<cnt)im.setMatrixAt(k++,o.matrix)}}im.count=k;S.add(im)})();
+  (function(){const cnt=Math.floor(BN/4)*2;const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.3),M(0xd8d2c2),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<BN;i+=4){const {p,tg,n}=bAt(i/BN);for(const s of [1,-1]){const dx=p.x+n.x*2.2*s,dz=p.z+n.z*2.2*s;o.position.set(dx,HF.h(dx,dz)+.1,dz);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();if(k<cnt)im.setMatrixAt(k++,o.matrix)}}im.count=k;S.add(im)})();
   // center dashes keep the road readable through bends and over the hills
   (function(){const cnt=Math.floor(N/7),im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.2,1.55),M(0xe8dfc9),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<N;i+=7){const {p,tg}=at(i/N);o.position.set(p.x,p.y+.115,p.z);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();im.setMatrixAt(k++,o.matrix)}im.count=k;S.add(im)})();
   // lamp posts (instanced posts + instanced bulbs so it is 2 draw calls, not 60)
@@ -3386,7 +3400,7 @@ addEventListener('scroll',mcta,{passive:true});
      car towards understeer, which is what you want on a road you are reading signs off.
      Drag is quadratic so the top end tapers on its own instead of hitting the governor,
      and downforce is taken along the body's own up axis so it plants the floor, not the world. */
-  const ARB_F=5200,ARB_R=4200,AERO_DRAG=.9,LOAD_CAP=1.6,LOAD_EXP=.6;
+  const ARB_F=5200,ARB_R=4200,AERO_DRAG=.3,LOAD_CAP=1.6,LOAD_EXP=.6;
   /* Careful with applyForce in this build of cannon: the second argument is a point in
      WORLD space, not an offset from the centre of mass, whatever the docs say. Passing
      a small offset silently applies the force way out near the world origin instead, and
@@ -3672,16 +3686,25 @@ addEventListener('scroll',mcta,{passive:true});
       /* Tractive force used to be flat all the way to the cap, so the car pulled just as
          hard at 90 as it did from rest and then hit a wall. This is the shape a gearbox
          actually gives you: strong off the line, tapering as the revs run out. */
-      const sr=Math.min(1,sp/Math.max(1,vmax)),tq=f?1-.55*sr*sr:1;
-      const force=(f-b)*V.engine*tq*(1+boost*.4)*eMul*(sp>vmax?0:1);veh.applyEngineForce(-force,2);veh.applyEngineForce(-force,3);
+      // pitch: +1 nose-down (descending), -1 nose-up. Taken from the chassis forward axis.
+      const fwd=new CANNON.Vec3(0,0,1);chassisB.quaternion.vmult(fwd,fwd);
+      const grade=Math.max(0,-fwd.y);
+      /* Tractive force. The engine is deliberately modest now — it used to be strong enough
+         to reach 60 km/h in under a second, which is why the smallest touch of throttle sent
+         the car flying. What it no longer has in raw grunt it gets back on a slope: climbAid
+         hands the driven wheels exactly the component of weight the hill is taking away, so
+         the Pull Hill still climbs at a steady pull the way a low gear would, while flat
+         ground stays civilised. Without it this engine cannot get up its own mountain. */
+      const climb=Math.max(0,fwd.y);
+      const climbAid=climb*chassisB.mass*Math.abs(world.gravity.y)/2;
+      const sr=Math.min(1,sp/Math.max(1,vmax)),tq=f?1-.35*sr*sr:1;
+      const force=(f-b)*(V.engine*tq+(f?climbAid:0))*(1+boost*.4)*eMul*(sp>vmax?0:1);
+      veh.applyEngineForce(-force,2);veh.applyEngineForce(-force,3);
       /* Downhill used to run away: engine force cuts out at V.max, but nothing opposed gravity
          on a descent, so the car kept accelerating with only the 2.2 coast brake resisting it.
          Two things fix it. A governor bleeds speed whenever we are over the cap regardless of
          what the engine is doing, and a grade term adds real engine braking proportional to how
          steep the descent is, the way a low gear would. */
-      // pitch: +1 nose-down (descending), -1 nose-up. Taken from the chassis forward axis.
-      const fwd=new CANNON.Vec3(0,0,1);chassisB.quaternion.vmult(fwd,fwd);
-      const grade=Math.max(0,-fwd.y);
       const over=Math.max(0,sp-vmax)/Math.max(1,vmax);
       const gradeBrake=grade*10*(f?0:1);         // gentle passive braking; the downhill remains driveable
       const govBrake=Math.min(18,over*42);        // scales in only once past the cap
