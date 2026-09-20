@@ -9,10 +9,10 @@ Thumbs.db
 *.swp
 .idea/
 .vscode/
+.history/
 
 # Build / dependency junk
 node_modules/
 *.log
+
 .vercel
-.env*
-.history/
