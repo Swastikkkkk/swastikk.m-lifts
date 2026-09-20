@@ -13,3 +13,5 @@ Thumbs.db
 # Build / dependency junk
 node_modules/
 *.log
+.vercel
+.env*
