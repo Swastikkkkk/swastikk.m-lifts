@@ -2267,7 +2267,7 @@ addEventListener('scroll',mcta,{passive:true});
      photos:[]},
   ];
   const VEHS={
-    car:{label:'Car',engine:650,max:28,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
+    car:{label:'Car',engine:650,max:30.8,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
   };
   const WEATHERS=[
     {id:'day',label:'Day',bg:0x9dc0dd,fog:[110,300],hemi:.62,sun:0xfff7e8,sunI:1.12,ground:0x5c6b44,leaf:0x39672b,part:null,slip:1,skyTop:0x4a86c6,skyBottom:0xc3d9ea,star:0,sunA:.7,terr:[1.06,1.1,.98],snow:0,water:0x2f6f8c,ridge:[.46,.53,.62]},
@@ -2460,7 +2460,7 @@ addEventListener('scroll',mcta,{passive:true});
      climb the car has to fight up. HILLS[1] is checkpoint 10's Platform: it comes later on
      the loop and it is deliberately the higher of the two, so the literal high point of the
      map is the record, not the failure that preceded it. */
-  const HILLS=[{a:.305,b:.385,c:.475,d:.555,H:14},{a:.680,b:.755,c:.805,d:.880,H:17}];
+  const HILLS=[{a:.265,b:.385,c:.475,d:.595,H:11},{a:.645,b:.755,c:.805,d:.915,H:13}];
   const HILL=HILLS[0];
   function hAt(u){u=((u%1)+1)%1;let out=0;
     for(let i=0;i<HILLS.length;i++){const {a,b,c,d,H}=HILLS[i];if(u<=a||u>=d)continue;let h;
@@ -2473,7 +2473,7 @@ addEventListener('scroll',mcta,{passive:true});
      ramp yard, then keeps climbing out to a lookout at the map's edge for the sunset.
      peakR is hard-clamped to stay inside the heightfield/physics walls no matter where
      BR_U actually lands on the spline, so a bad guess here can't put anything out of bounds. */
-  const BR_U=.775,BR_LEN=34,PEAK_DIST=40,PEAK_RISE=15;
+  const BR_U=.775,BR_LEN=34,PEAK_DIST=62,PEAK_RISE=10;
   const PTS_CTR=PTS.reduce((a,p)=>a.add(p),new THREE.Vector3()).divideScalar(PTS.length);
   const BR_START=curve.getPointAt(BR_U).clone();BR_START.y=0;
   const BR_OUT=BR_START.clone().sub(PTS_CTR);BR_OUT.y=0;BR_OUT.normalize();
