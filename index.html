@@ -2271,10 +2271,10 @@ addEventListener('scroll',mcta,{passive:true});
   };
   const WEATHERS=[
     {id:'day',label:'Day',bg:0x9dc0dd,fog:[110,300],hemi:.62,sun:0xfff7e8,sunI:1.12,ground:0x5c6b44,leaf:0x39672b,part:null,slip:1,skyTop:0x4a86c6,skyBottom:0xc3d9ea,star:0,sunA:.7,terr:[1.06,1.1,.98],snow:0,water:0x2f6f8c,ridge:[.46,.53,.62]},
-    {id:'dusk',label:'Dusk',bg:0x2e2418,fog:[80,240],hemi:.5,sun:0xffcf92,sunI:1.0,ground:0x3a3124,leaf:0x3d4a2c,part:null,slip:1,skyTop:0x3d4a72,skyBottom:0xd98f4e,star:.45,sunA:1,terr:[1.16,1,.82],snow:0,water:0x3c4f5e,ridge:[.3,.28,.3]},
+    {id:'dusk',label:'Dusk',bg:0x2e2418,fog:[80,240],hemi:.5,sun:0xffcf92,sunI:1.0,ground:0x3a3124,leaf:0x3d4a2c,part:null,slip:1,skyTop:0x3d4a72,skyBottom:0xd98f4e,star:.72,sunA:1,terr:[1.16,1,.82],snow:0,water:0x3c4f5e,ridge:[.3,.28,.3]},
     {id:'rain',label:'Rain',bg:0x5b656d,fog:[45,175],hemi:.52,sun:0xc3d0dc,sunI:.42,ground:0x15171a,leaf:0x27342c,part:'rain',slip:.75,skyTop:0x4d5760,skyBottom:0x707a82,star:.04,sunA:.25,terr:[.8,.88,.96],snow:0,water:0x25404e,ridge:[.16,.18,.22]},
     {id:'snow',label:'Snow',bg:0xc4cad0,fog:[38,160],hemi:.66,sun:0xffffff,sunI:.62,ground:0xd8dde1,leaf:0xdfe6ea,part:'snow',slip:.55,skyTop:0xf0f4f8,skyBottom:0xc4cad0,star:0,sunA:.5,terr:[1.02,1.04,1.08],snow:.88,water:0x5d7581,ridge:[.62,.66,.72]},
-    {id:'autumn',label:'Autumn',bg:0x6a4a2c,fog:[75,240],hemi:.54,sun:0xffc082,sunI:1.02,ground:0x2a2016,leaf:0xc2561f,part:'leaves',slip:.95,skyTop:0x6c5330,skyBottom:0xb08046,star:.2,sunA:.85,terr:[1.42,1.04,.68],snow:0,water:0x3d4a44,ridge:[.3,.22,.15]},
+    {id:'autumn',label:'Autumn',bg:0x6a4a2c,fog:[75,240],hemi:.54,sun:0xffc082,sunI:1.02,ground:0x2a2016,leaf:0xc2561f,part:'leaves',slip:.95,skyTop:0x6c5330,skyBottom:0xb08046,star:.34,sunA:.85,terr:[1.42,1.04,.68],snow:0,water:0x3d4a44,ridge:[.3,.22,.15]},
   ];
   /* ---------- dom ---------- */
   const sec=$('#drive'),cv=$('#dc'),hud=$('#dhud'),kgEl=$('#dkg'),hint=$('#dhint'),startBtn=$('#dstart'),toast=$('#dtoast'),mm=$('#dmap'),mx2=mm.getContext('2d'),spd=$('#dspeed'),chap=$('#dchap'),prompt=$('#dprompt'),viewer=$('#dview'),bigmap=$('#dbig'),bmc=$('#dbigc'),cine=$('#dcine'),mob=$('#dmob'),mute=$('#dmute'),liftEl=$('#dlift');
@@ -2342,6 +2342,7 @@ addEventListener('scroll',mcta,{passive:true});
   const hemi=new THREE.HemisphereLight(0xdfeaff,0x3c3a30,.55);S.add(hemi);
   const sun=new THREE.DirectionalLight(0xfff2dd,1.05);sun.position.set(18,34,12);sun.castShadow=!LOW;sun.shadow.mapSize.set(LOW?512:640,LOW?512:640);sun.shadow.autoUpdate=false;sun.shadow.bias=-.0006;Object.assign(sun.shadow.camera,{left:-30,right:30,top:30,bottom:-30,near:1,far:110});S.add(sun);S.add(sun.target);
   const SUN_DIR=new THREE.Vector3(18,34,12).normalize();
+  const MOON_DIR=new THREE.Vector3(-20,26,-14).normalize(); // rides opposite the sun
   const SUN_OFF_DEFAULT=new THREE.Vector3(18,34,12);
   const SUN_OFF_LOW=new THREE.Vector3(34,8,22); // a low, golden-hour sun angle, used only while parked at the summit
   const SUN_DIR_LOW=SUN_OFF_LOW.clone().normalize();
@@ -2357,11 +2358,72 @@ addEventListener('scroll',mcta,{passive:true});
   {const gx=sunTexC.getContext('2d'),gr=gx.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(255,246,222,1)');gr.addColorStop(.35,'rgba(255,224,168,.5)');gr.addColorStop(1,'rgba(255,224,168,0)');gx.fillStyle=gr;gx.fillRect(0,0,128,128)}
   const sunSprite=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(sunTexC),color:0xfff2dd,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));
   sunSprite.scale.set(50,50,1);sunSprite.position.copy(sun.position).normalize().multiplyScalar(260);S.add(sunSprite);
-  const STARN=200;const starPos=new Float32Array(STARN*3);
-  for(let i=0;i<STARN;i++){const th=Math.random()*Math.PI*2,ph=Math.acos(Math.random()*.85),r=270;starPos[i*3]=r*Math.sin(ph)*Math.cos(th);starPos[i*3+1]=Math.abs(r*Math.cos(ph))*.9+22;starPos[i*3+2]=r*Math.sin(ph)*Math.sin(th)}
-  const starGeo=new THREE.BufferGeometry();starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));
-  const starMat=new THREE.PointsMaterial({color:0xffffff,size:1.1,transparent:true,opacity:.6,depthWrite:false,fog:false});
-  const stars=new THREE.Points(starGeo,starMat);S.add(stars);SCN.stars=stars;
+  /* ---------- the night sky ----------
+     Two hundred identical white dots read as static, so this is a real star field:
+     sizes and colours vary, roughly a third of them are pulled into a tilted band so
+     there is a milky way to look up at, and each one twinkles on its own phase. It is
+     still a single draw call — the variation lives in attributes, the twinkle in the
+     vertex shader, so none of it costs anything per frame on the CPU. */
+  const STARN=LOW?240:560;
+  const starPos=new Float32Array(STARN*3),starSize=new Float32Array(STARN),
+        starPhase=new Float32Array(STARN),starTint=new Float32Array(STARN*3);
+  {const BAND=new THREE.Vector3(.42,.62,.66).normalize();  // the milky way's tilt
+   const t1=new THREE.Vector3(),t2=new THREE.Vector3(),p=new THREE.Vector3();
+   t1.set(-BAND.y,BAND.x,0).normalize();t2.crossVectors(BAND,t1).normalize();
+   for(let i=0;i<STARN;i++){
+     const inBand=i%3===0;   // a third of the sky's stars belong to the band
+     if(inBand){const a=Math.random()*Math.PI*2,spread=(Math.random()+Math.random()-1)*.20;
+       p.copy(t1).multiplyScalar(Math.cos(a)).addScaledVector(t2,Math.sin(a)).addScaledVector(BAND,spread).normalize()}
+     else{const th=Math.random()*Math.PI*2,ph=Math.acos(Math.random()*.9);
+       p.set(Math.sin(ph)*Math.cos(th),Math.cos(ph),Math.sin(ph)*Math.sin(th))}
+     if(p.y<0)p.y=-p.y;                       // keep them all above the horizon
+     const r=272;
+     starPos[i*3]=p.x*r;starPos[i*3+1]=p.y*r*.9+20;starPos[i*3+2]=p.z*r;
+     // a few bright ones, most of them faint; band stars sit smaller and denser
+     const big=Math.random();
+     starSize[i]=(inBand?.7:1)*(big>.965?3.4:big>.85?2.1:1.25)*(LOW?1.15:1);
+     starPhase[i]=Math.random()*6.283;
+     // real stars are not white: lean a little warm or a little blue
+     const warm=Math.random();
+     const c=warm>.72?[1,.86,.7]:warm>.4?[1,.98,.94]:[.78,.86,1];
+     starTint[i*3]=c[0];starTint[i*3+1]=c[1];starTint[i*3+2]=c[2]}}
+  const starGeo=new THREE.BufferGeometry();
+  starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));
+  starGeo.setAttribute('aSize',new THREE.BufferAttribute(starSize,1));
+  starGeo.setAttribute('aPhase',new THREE.BufferAttribute(starPhase,1));
+  starGeo.setAttribute('aTint',new THREE.BufferAttribute(starTint,3));
+  const starMat=new THREE.ShaderMaterial({
+    uniforms:{uTime:{value:0},uOpacity:{value:.6},uPix:{value:Math.min(devicePixelRatio||1,2)}},
+    transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,
+    vertexShader:`attribute float aSize;attribute float aPhase;attribute vec3 aTint;
+      uniform float uTime,uOpacity,uPix;varying float vA;varying vec3 vT;
+      void main(){vec4 mv=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*mv;
+        float tw=.58+.42*sin(uTime*1.6+aPhase);vA=uOpacity*tw;vT=aTint;
+        gl_PointSize=aSize*uPix;}`,
+    fragmentShader:`varying float vA;varying vec3 vT;
+      void main(){vec2 d=gl_PointCoord-vec2(.5);float r=length(d);if(r>.5)discard;
+        float a=1.-smoothstep(0.,.5,r);a*=a;gl_FragColor=vec4(vT,vA*a);}`});
+  const stars=new THREE.Points(starGeo,starMat);stars.frustumCulled=false;S.add(stars);SCN.stars=stars;
+  /* The moon. Rides opposite the sun, fades in with the stars, and carries its own soft
+     halo so it reads as light rather than a pasted-on disc. */
+  const moonC=document.createElement('canvas');moonC.width=moonC.height=128;
+  {const g=moonC.getContext('2d');
+   const hal=g.createRadialGradient(64,64,10,64,64,64);
+   hal.addColorStop(0,'rgba(226,232,246,.95)');hal.addColorStop(.34,'rgba(206,216,238,.30)');
+   hal.addColorStop(1,'rgba(180,196,230,0)');g.fillStyle=hal;g.fillRect(0,0,128,128);
+   g.beginPath();g.arc(64,64,25,0,6.283);g.fillStyle='#eef1fa';g.fill();
+   g.globalAlpha=.16;g.fillStyle='#8f9ab4';
+   [[56,55,7],[72,70,5],[62,76,4],[75,56,3],[52,68,3]].forEach(([x,y,r])=>{g.beginPath();g.arc(x,y,r,0,6.283);g.fill()})}
+  const moon=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(moonC),
+    transparent:true,depthWrite:false,fog:false,blending:THREE.AdditiveBlending,opacity:0}));
+  moon.scale.set(34,34,1);moon.frustumCulled=false;S.add(moon);
+  /* A shooting star every so often, but only when there are stars out to shoot across.
+     One reused line, so it costs nothing when it is not running. */
+  const shootGeo=new THREE.BufferGeometry();
+  shootGeo.setAttribute('position',new THREE.BufferAttribute(new Float32Array(6),3));
+  const shootMat=new THREE.LineBasicMaterial({color:0xfdf6e6,transparent:true,opacity:0,depthWrite:false,fog:false,blending:THREE.AdditiveBlending});
+  const shootL=new THREE.Line(shootGeo,shootMat);shootL.frustumCulled=false;shootL.visible=false;S.add(shootL);
+  const shoot={t:0,dur:0,next:4+Math.random()*9,from:new THREE.Vector3(),dir:new THREE.Vector3()};
   const DUSTN=LOW?40:100;const dustPos=new Float32Array(DUSTN*3);
   for(let i=0;i<DUSTN;i++){dustPos[i*3]=(Math.random()-.5)*76;dustPos[i*3+1]=Math.random()*9+.5;dustPos[i*3+2]=(Math.random()-.5)*76}
   const dustGeo=new THREE.BufferGeometry();dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
@@ -3272,7 +3334,8 @@ addEventListener('scroll',mcta,{passive:true});
     groundM.color.setHex(wx.ground);leafM.color.setHex(wx.leaf);waterM.color.setHex(wx.water);
     terrainM.color.setRGB(wx.terr[0],wx.terr[1],wx.terr[2]);
     skyMat.uniforms.topColor.value.setHex(wx.skyTop);skyMat.uniforms.bottomColor.value.setHex(wx.skyBottom);
-    starMat.opacity=wx.star;sunSprite.material.color.setHex(wx.sun);sunSprite.material.opacity=wx.sunA;dustMat.opacity=wx.dust;
+    starMat.uniforms.uOpacity.value=wx.star;moon.material.opacity=Math.min(1,wx.star*1.35);
+    sunSprite.material.color.setHex(wx.sun);sunSprite.material.opacity=wx.sunA;dustMat.opacity=wx.dust;
     if(full||ridgeN++%6===0)ridgeTint(wx.ridge);
     parts.visible=partA>.02;pMat.opacity=.8*partA;
     pMat.color.setHex(wx.part==='rain'?0x9fb4c8:wx.part==='leaves'?0xd0692a:0xffffff);
@@ -3837,6 +3900,29 @@ addEventListener('scroll',mcta,{passive:true});
     const sunOff=recapCam?SUN_OFF_LOW:SUN_OFF_DEFAULT;
     sun.position.set(car.position.x+sunOff.x,car.position.y+sunOff.y,car.position.z+sunOff.z);sun.target.position.copy(car.position);
     sky.position.copy(C.position);stars.position.copy(C.position);stars.rotation.y+=dt*.0015;
+    /* ---------- night sky: twinkle, moon, the odd shooting star ---------- */
+    starMat.uniforms.uTime.value+=dt;
+    moon.position.copy(C.position).addScaledVector(MOON_DIR,250);
+    {const lit=wx.star>.12;
+     if(!lit){shoot.next=3+Math.random()*8;if(shootL.visible){shootL.visible=false;shootMat.opacity=0}}
+     else if(shoot.dur>0){
+       shoot.t+=dt;const k=shoot.t/shoot.dur;
+       if(k>=1){shoot.dur=0;shootL.visible=false;shootMat.opacity=0;shoot.next=5+Math.random()*11}
+       else{
+         const a=shootGeo.attributes.position.array;
+         // head runs along the path, tail trails behind it
+         const hx=shoot.from.x+shoot.dir.x*k*170,hy=shoot.from.y+shoot.dir.y*k*170,hz=shoot.from.z+shoot.dir.z*k*170;
+         a[0]=C.position.x+hx;a[1]=hy;a[2]=C.position.z+hz;
+         a[3]=C.position.x+hx-shoot.dir.x*26;a[4]=hy-shoot.dir.y*26;a[5]=C.position.z+hz-shoot.dir.z*26;
+         shootGeo.attributes.position.needsUpdate=true;
+         shootMat.opacity=Math.sin(k*Math.PI)*.85*wx.star}}
+     else{
+       shoot.next-=dt;
+       if(shoot.next<=0){
+         const th=Math.random()*6.283,ph=.35+Math.random()*.5,r=250;
+         shoot.from.set(Math.sin(ph)*Math.cos(th)*r,Math.cos(ph)*r*.8+70,Math.sin(ph)*Math.sin(th)*r);
+         shoot.dir.set(-Math.cos(th)*.7+(Math.random()-.5)*.5,-.35-Math.random()*.3,-Math.sin(th)*.7+(Math.random()-.5)*.5).normalize();
+         shoot.t=0;shoot.dur=.55+Math.random()*.45;shootL.visible=true}}}
     sunSprite.position.copy(car.position).addScaledVector(recapCam?SUN_DIR_LOW:SUN_DIR,260);
     dust.position.set(car.position.x,0,car.position.z);dust.rotation.y+=dt*.02;
     if(active&&frameN%3===0){spdS+=(sp*3.6-spdS)*.4;spd.textContent=String(Math.round(spdS)).padStart(3,'0')}
