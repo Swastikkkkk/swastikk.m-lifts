@@ -21,7 +21,7 @@
  * Version: New version, or the live URL keeps running the old code.
  */
 
-var SECRET_KEY   = 'REMOVED_PUBLIC_TOKEN';  // must match SL_CFG.SECRET_KEY in index.html
+var SECRET_KEY   = 'swastik-lifts-form-v1-2026';  // public form token; must match SL_CFG.SECRET_KEY in index.html
 var NOTIFY_EMAIL = 'swastikmohanty2635@gmail.com'; // e.g. 'you@gmail.com', or leave blank
 var APPS_SHEET   = 'Applications';
 var LAPS_SHEET   = 'Lap times';
