@@ -3303,6 +3303,20 @@ addEventListener('scroll',mcta,{passive:true});
   const wo={radius:.46,directionLocal:new CANNON.Vec3(0,-1,0),suspensionStiffness:40,suspensionRestLength:.42,frictionSlip:2.4,dampingRelaxation:2.8,dampingCompression:4.8,maxSuspensionForce:1e5,rollInfluence:.02,axleLocal:new CANNON.Vec3(-1,0,0),chassisConnectionPointLocal:new CANNON.Vec3(),maxSuspensionTravel:.4,customSlidingRotationalSpeed:-30,useCustomSlidingRotationalSpeed:true};
   [[1,1],[-1,1],[1,-1],[-1,-1]].forEach(([x,z])=>{wo.chassisConnectionPointLocal.set(x,.05,z);veh.addWheel(wo)});
   veh.addToWorld(world);
+  /* Chassis dynamics constants. A raycast vehicle with none of this leans like a boat,
+     keeps full grip on a wheel that is barely touching the road, and has no idea how
+     fast it is going. Front bar is stiffer than the rear on purpose: that biases the
+     car towards understeer, which is what you want on a road you are reading signs off.
+     Drag is quadratic so the top end tapers on its own instead of hitting the governor,
+     and downforce is taken along the body's own up axis so it plants the floor, not the world. */
+  const ARB_F=5200,ARB_R=4200,AERO_DRAG=.9,LOAD_CAP=1.6,LOAD_EXP=.6;
+  /* Careful with applyForce in this build of cannon: the second argument is a point in
+     WORLD space, not an offset from the centre of mass, whatever the docs say. Passing
+     a small offset silently applies the force way out near the world origin instead, and
+     the lever arm that gives you grows the further you drive from spawn — which reads as
+     the car spontaneously backflipping off a jump. Pass chassisB.position for a force
+     through the centre of mass, or the actual contact point to apply it at a wheel. */
+  const bodyUp=new CANNON.Vec3();
   // visuals
   const vis={car:new THREE.Group()};car.add(vis.car);
   const add=(g,geo,m,x,y,z,sh=true)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=sh;g.add(o);return o};
@@ -3577,7 +3591,11 @@ addEventListener('scroll',mcta,{passive:true});
       ZN=zoneAt(progU);const zd=ZN.drag;
       const boost=key.boost?1:0;
       const eMul=(1-sub*.66)*(1-zd*.52),vmax=V.max*(1+boost*.28)*(1-sub*.68)*(1-zd*.38);
-      const force=(f-b)*V.engine*(1+boost*.4)*eMul*(sp>vmax?0:1);veh.applyEngineForce(-force,2);veh.applyEngineForce(-force,3);
+      /* Tractive force used to be flat all the way to the cap, so the car pulled just as
+         hard at 90 as it did from rest and then hit a wall. This is the shape a gearbox
+         actually gives you: strong off the line, tapering as the revs run out. */
+      const sr=Math.min(1,sp/Math.max(1,vmax)),tq=f?1-.55*sr*sr:1;
+      const force=(f-b)*V.engine*tq*(1+boost*.4)*eMul*(sp>vmax?0:1);veh.applyEngineForce(-force,2);veh.applyEngineForce(-force,3);
       /* Downhill used to run away: engine force cuts out at V.max, but nothing opposed gravity
          on a descent, so the car kept accelerating with only the 2.2 coast brake resisting it.
          Two things fix it. A governor bleeds speed whenever we are over the cap regardless of
@@ -3590,8 +3608,11 @@ addEventListener('scroll',mcta,{passive:true});
       const gradeBrake=grade*10*(f?0:1);         // gentle passive braking; the downhill remains driveable
       const govBrake=Math.min(18,over*42);        // scales in only once past the cap
       const coast=(f===0&&b===0)?.8:0;
-      const brake=key.h?46:Math.max(coast,gradeBrake,govBrake);
-      for(let i=0;i<4;i++)veh.setBrake(brake,i);
+      /* Brakes are plumbed the way a real car's are: front biased under normal braking,
+         because that is where the weight goes when you slow down, and the handbrake on
+         the rear axle only, which is what lets it rotate the car instead of just stopping it. */
+      const svc=Math.max(coast,gradeBrake,govBrake);
+      for(let i=0;i<4;i++){const fr=i<2;veh.setBrake(Math.max(svc*(fr?1.25:.75),key.h?(fr?0:52):0),i)}
       // hard ceiling: if it is still climbing past the cap, damp the velocity directly
       if(sp>vmax*1.18&&!inPond){const s=vmax*1.18/sp;chassisB.velocity.x*=s;chassisB.velocity.z*=s}
       // steeper ground => more angular damping, which is what kills the hillside wobble
@@ -3616,7 +3637,50 @@ addEventListener('scroll',mcta,{passive:true});
         const v=chassisB.velocity,vs=v.length();
         if(vs>.05){const dq=Math.min(chassisB.mass*13,vs*vs*7.5)*sub;chassisB.applyForce(new CANNON.Vec3(-v.x/vs*dq,-v.y/vs*dq*.4,-v.z/vs*dq),chassisB.position)}
         if(now-pondToast>6000){pondToast=now;toastMsg(sub>.6?'Wading through, take it slow':'Careful, shallow water')}}
-      {const localVel=chassisB.velocity.clone();chassisB.quaternion.conjugate().vmult(localVel,localVel);const lateral=Math.min(1,Math.abs(localVel.x)/8),rearGrip=key.h?.58:1,grip=V.slip*wx.slip*(1-sub*.72)*(1+grade*.55)*(1+lateral*.22);for(let i=0;i<veh.wheelInfos.length;i++)veh.wheelInfos[i].frictionSlip=grip*(i>1?rearGrip:1)}
+      /* ---------- chassis dynamics ----------
+         Three things a raycast vehicle does not give you for free, and all three are
+         what made this car feel like a brick on ice. An anti-roll bar per axle, which
+         trades load across the car in a corner instead of letting it lean over and ride
+         on two wheels. Aero, so the top end tapers off on its own and the faster you go
+         the harder the floor is pressed into the road. And tyre grip that scales with how
+         hard each wheel is actually loaded — a wheel that has gone light in a corner now
+         gives up grip the way a real one does, which is where the understeer comes from. */
+      {const wi=veh.wheelInfos,STATIC=chassisB.mass*Math.abs(world.gravity.y)/4;
+       chassisB.quaternion.vmult(new CANNON.Vec3(0,1,0),bodyUp);
+       const comp=[],load=[];
+       for(let i=0;i<wi.length;i++){const w=wi[i],rest=w.suspensionRestLength||1;
+         const sf=+w.suspensionForce;
+         load.push(w.isInContact&&isFinite(sf)?Math.max(0,sf):0);
+         comp.push(w.isInContact?Math.max(0,Math.min(1,w.suspensionLength/rest)):1)}
+       // anti-roll bars — front axle is wheels 0/1, rear is 2/3
+       if(!inPond){[[0,1,ARB_F],[2,3,ARB_R]].forEach(([l,r,k])=>{
+         // both wheels on the axle have to be down, or landing off a ramp gets jumpy
+         if(!wi[l].isInContact||!wi[r].isInContact||!wi[l].raycastResult||!wi[r].raycastResult)return;
+         const fN=(comp[l]-comp[r])*k;if(!isFinite(fN)||Math.abs(fN)<1)return;
+         chassisB.applyForce(bodyUp.scale(-fN),wi[l].raycastResult.hitPointWorld);
+         chassisB.applyForce(bodyUp.scale(fN),wi[r].raycastResult.hitPointWorld)})}
+       /* Aero is drag only, applied at the centre of mass so it cannot pitch the car.
+          Downforce was tried and thrown out: on springs this soft it squashed the
+          suspension until the floor grounded out, which cost half the top speed and
+          eventually put the car on its roof. Drag on its own does the useful half —
+          it tapers the top end and, because it pulls at the centre of mass while the
+          drive pushes at the rear contact patches, it settles the nose under power. */
+       if(!inPond){const vv=chassisB.velocity,vs=Math.hypot(vv.x,vv.z);
+         if(vs>.5&&isFinite(vs)){
+           const dg=Math.min(chassisB.mass*8,vs*vs*AERO_DRAG);
+           chassisB.applyForce(new CANNON.Vec3(-vv.x/vs*dg,0,-vv.z/vs*dg),chassisB.position)}}
+       const localVel=chassisB.velocity.clone();chassisB.quaternion.conjugate().vmult(localVel,localVel);
+       const lateral=Math.min(1,Math.abs(localVel.x)/8),rearGrip=key.h?.58:1,
+             grip=V.slip*wx.slip*(1-sub*.72)*(1+grade*.55)*(1+lateral*.22);
+       for(let i=0;i<wi.length;i++){
+         // load sensitivity: grip climbs with load, but slower than the load does
+         const lr=STATIC>0?load[i]/STATIC:1;
+         const ls=wi[i].isInContact?Math.max(.4,Math.pow(Math.min(LOAD_CAP,lr),LOAD_EXP)):1;
+         wi[i].frictionSlip=grip*(i>1?rearGrip:1)*(isFinite(ls)?ls:1)}
+       // nothing above is allowed to hand the solver a NaN — that is what used to launch the car
+       const F=chassisB.force,T=chassisB.torque;
+       if(!isFinite(F.x)||!isFinite(F.y)||!isFinite(F.z))F.set(0,0,0);
+       if(!isFinite(T.x)||!isFinite(T.y)||!isFinite(T.z))T.set(0,0,0)}
       world.step(1/60,dt,3);
       const dv=tmp.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z).sub(lastV).length();lastV.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z);if(dv>7){shake=Math.min(1,dv/25);blip(90,.25,.15)}
       if(chassisB.position.y<-9||!isFinite(chassisB.position.y)||!isFinite(chassisB.velocity.x)){resetCar();toastMsg('Pulled you back onto the road')}
