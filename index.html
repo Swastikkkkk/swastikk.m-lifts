@@ -13,7 +13,7 @@
      Link previews (WhatsApp, Instagram bio, iMessage) need ABSOLUTE urls —
      relative paths and data: URIs are ignored by every scraper. Replace the
     one https://swastikk-m.vercel.app value below in both og:url and og:image once the domain is
-     live, e.g. https://swastikk-m.vercel.app  — nothing else needs editing. -->
+    live, e.g. https://swastikk-m.vercel.app  — nothing else needs editing. -->
 <link rel="canonical" href="https://swastikk-m.vercel.app/">
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
@@ -2267,7 +2267,7 @@ addEventListener('scroll',mcta,{passive:true});
      photos:[]},
   ];
   const VEHS={
-    car:{label:'Car',engine:1500,max:22,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
+    car:{label:'Car',engine:2100,max:28,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
   };
   const WEATHERS=[
     {id:'day',label:'Day',bg:0x9dc0dd,fog:[110,300],hemi:.62,sun:0xfff7e8,sunI:1.12,ground:0x5c6b44,leaf:0x39672b,part:null,slip:1,skyTop:0x4a86c6,skyBottom:0xc3d9ea,star:0,sunA:.7,terr:[1.06,1.1,.98],snow:0,water:0x2f6f8c,ridge:[.46,.53,.62]},
@@ -2388,7 +2388,7 @@ addEventListener('scroll',mcta,{passive:true});
      climb the car has to fight up. HILLS[1] is checkpoint 10's Platform: it comes later on
      the loop and it is deliberately the higher of the two, so the literal high point of the
      map is the record, not the failure that preceded it. */
-  const HILLS=[{a:.305,b:.405,c:.455,d:.545,H:19},{a:.680,b:.748,c:.790,d:.862,H:23}];
+  const HILLS=[{a:.305,b:.385,c:.475,d:.555,H:14},{a:.680,b:.755,c:.805,d:.880,H:17}];
   const HILL=HILLS[0];
   function hAt(u){u=((u%1)+1)%1;let out=0;
     for(let i=0;i<HILLS.length;i++){const {a,b,c,d,H}=HILLS[i];if(u<=a||u>=d)continue;let h;
@@ -2470,7 +2470,7 @@ addEventListener('scroll',mcta,{passive:true});
     const de=Math.max(Math.abs(x),Math.abs(z));
     if(de>116){const t=SM((de-116)/32);h+=t*(18+(fbm2(x*.04+7,z*.04-3)-.5)*20)}
     // the road corridor stays true to the spline, and wins over everything
-    const rn=roadNear(x,z),fw=1-SM((rn.d-7.4)/22);
+    const rn=roadNear(x,z),fw=1-SM((rn.d-9.8)/30);
     if(fw>0)h=h*(1-fw)+hAt(rn.u)*fw;
     for(let i=0;i<PADS.length;i++){const p=PADS[i],dd=Math.hypot(p.x-x,p.z-z);
       if(dd<p.f){const w=1-SM((dd-p.r)/(p.f-p.r));h=h*(1-w)+p.y*w}}
@@ -3468,9 +3468,9 @@ addEventListener('scroll',mcta,{passive:true});
       const fwd=new CANNON.Vec3(0,0,1);chassisB.quaternion.vmult(fwd,fwd);
       const grade=Math.max(0,-fwd.y);
       const over=Math.max(0,sp-vmax)/Math.max(1,vmax);
-      const gradeBrake=grade*26*(f?0:1);         // released when you are actively on the gas
+      const gradeBrake=grade*10*(f?0:1);         // gentle passive braking; the downhill remains driveable
       const govBrake=Math.min(18,over*42);        // scales in only once past the cap
-      const coast=(f===0&&b===0)?2.2:0;
+      const coast=(f===0&&b===0)?.8:0;
       const brake=key.h?46:Math.max(coast,gradeBrake,govBrake);
       for(let i=0;i<4;i++)veh.setBrake(brake,i);
       // hard ceiling: if it is still climbing past the cap, damp the velocity directly
