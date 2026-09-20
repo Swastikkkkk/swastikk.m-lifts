@@ -2447,8 +2447,8 @@ addEventListener('scroll',mcta,{passive:true});
   const world=new CANNON.World();world.gravity.set(0,-24,0);world.broadphase=new CANNON.SAPBroadphase(world);world.allowSleep=true;world.defaultContactMaterial.friction=.3;
   const gM=new CANNON.Material('g'),oM=new CANNON.Material('o');world.addContactMaterial(new CANNON.ContactMaterial(gM,oM,{friction:.5,restitution:.1}));
   // no infinite ground plane: the world heightfield below is the only ground, which is what lets the pond have a real bed
-  const BOUND=172;[[BOUND,0,0,.5,8,BOUND],[-BOUND,0,0,.5,8,BOUND],[0,0,BOUND,BOUND,8,.5],[0,0,-BOUND,BOUND,8,.5]].forEach(([x,y,z,a,b,c])=>{const w=new CANNON.Body({mass:0});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);world.addBody(w)});
-  const WS=185,ES=2; // heightfield half-extent + grid spacing; declared early because the branch/summit road below needs it
+  const BOUND=192;[[BOUND,0,0,.5,8,BOUND],[-BOUND,0,0,.5,8,BOUND],[0,0,BOUND,BOUND,8,.5],[0,0,-BOUND,BOUND,8,.5]].forEach(([x,y,z,a,b,c])=>{const w=new CANNON.Body({mass:0});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);world.addBody(w)});
+  const WS=205,ES=2; // heightfield half-extent + grid spacing; declared early because the branch/summit road below needs it
   const dyn=[];
   function staticBox(x,y,z,a,b,c,ry=0){const w=new CANNON.Body({mass:0,material:oM});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);w.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);world.addBody(w);return w}
   function dynBox(mesh,x,y,z,a,b,c,mass,ry=0){const bd=new CANNON.Body({mass,material:oM});bd.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));bd.position.set(x,y,z);bd.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);bd.angularDamping=.5;bd.linearDamping=.2;bd.sleepSpeedLimit=.3;world.addBody(bd);mesh.position.set(x,y,z);mesh.rotation.y=ry;S.add(mesh);dyn.push({mesh,body:bd,home:new CANNON.Vec3(x,y,z),q:bd.quaternion.clone()});return bd}
@@ -2501,6 +2501,10 @@ addEventListener('scroll',mcta,{passive:true});
      stretch of road is already level at PEAK_H by the time it reaches the lookout's flat
      pad. Running the rise all the way to u=1 left the road still climbing into ground
      that had already been flattened, and the two met in a step. */
+  /* The ring road: a circle laid round the ramp yard, flat at the yard's own height.
+     The branch arrives, and instead of a dead end there is something to lap — the three
+     ramps sit inside it, so you can cut across the middle or stay on the tarmac. */
+  const RING={x:RAMPYARD.x,z:RAMPYARD.z,r:19};
   const U_TOP=.93;
   function brHAt(u){if(u<=U_YARD)return BR_H;
     return BR_H+(PEAK_H-BR_H)*brSmooth(Math.min(1,(u-U_YARD)/Math.max(.001,U_TOP-U_YARD)))}
@@ -2545,7 +2549,8 @@ addEventListener('scroll',mcta,{passive:true});
   const PADS=JOURNEY.map(J=>{const q=placeAt(J.u,J.side,stDist(J));return {x:q.x,z:q.z,y:q.y,r:J.big?10:7.5,f:J.big?18:15}});
   EXTRAS.forEach(E=>{const q=placeAt(E.u,E.side,11);E.q=q;PADS.push({x:q.x,z:q.z,y:q.y,r:6,f:12})});
   PADS.push({x:PG.x,z:PG.z,y:0,r:17,f:28});
-  PADS.push({x:RAMPYARD.x,z:RAMPYARD.z,y:BR_H,r:13,f:24});
+  // the pad has to hold the whole ring, not just the ramps, or the circle rides a slope
+  PADS.push({x:RAMPYARD.x,z:RAMPYARD.z,y:BR_H,r:RING.r+5,f:RING.r+15});
   PADS.push({x:PEAK.x,z:PEAK.z,y:PEAK_H,r:8,f:16});
   /* ---------- one world heightfield: rolling land, a real mountain, a pond basin, a valley rim ---------- */
   /* One sample run and one bounding box per hill: a single box round both would drag every
@@ -2557,10 +2562,15 @@ addEventListener('scroll',mcta,{passive:true});
   function roadNear(x,z){let bi=0,bd=1e9;
     for(let i=0;i<N;i+=6){const dx=SAMP[i].x-x,dz=SAMP[i].z-z,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=i}}
     for(let i=bi-6;i<=bi+6;i++){const k=(i+N)%N,dx=SAMP[k].x-x,dz=SAMP[k].z-z,d=dx*dx+dz*dz;if(d<bd){bd=d;bi=k}}
-    let bestD=bd,bestU=bi/N,branch=false;
+    let bestD=bd,bestU=bi/N,branch=false,ring=false;
     // the branch spur is short, so a full linear scan of it is cheap
     for(let i=0;i<=BN;i++){const dx=BSAMP[i].x-x,dz=BSAMP[i].z-z,d=dx*dx+dz*dz;if(d<bestD){bestD=d;bestU=i/BN;branch=true}}
-    return {d:Math.sqrt(bestD),u:bestU,branch}}
+    /* The ring road is a circle, so it needs no samples at all: how far you are from the
+       tarmac is just how far your radius is from the circle's. One subtraction beats
+       walking a polyline, which matters because this runs for every cell of the heightfield. */
+    {const dx=x-RING.x,dz=z-RING.z,dr=Math.abs(Math.hypot(dx,dz)-RING.r),d=dr*dr;
+     if(d<bestD){bestD=d;bestU=0;branch=true;ring=true}}
+    return {d:Math.sqrt(bestD),u:bestU,branch,ring}}
   function rollingH(x,z){return (fbm2(x*.0115+3,z*.0115-5)-.52)*15+(fbm2(x*.046-8,z*.046+2)-.5)*4.4+(fbm2(x*.15+21,z*.15-13)-.5)*1.1}
   function mountH(x,z){let h=0,md=1e9,any=false;
     for(let m=0;m<MASS.length;m++){const BB=MASS[m].bb;if(x<BB.a||x>BB.b||z<BB.c||z>BB.d)continue;any=true;
@@ -2584,7 +2594,7 @@ addEventListener('scroll',mcta,{passive:true});
     if(de>116){const t=SM((de-116)/32);h+=t*(18+(fbm2(x*.04+7,z*.04-3)-.5)*20)}
     // the road corridor stays true to the spline, and wins over everything
     const rn=roadNear(x,z),fw=1-SM((rn.d-9.8)/30);
-    if(fw>0)h=h*(1-fw)+(rn.branch?brHAt(rn.u):hAt(rn.u))*fw;
+    if(fw>0)h=h*(1-fw)+(rn.ring?BR_H:rn.branch?brHAt(rn.u):hAt(rn.u))*fw;
     for(let i=0;i<PADS.length;i++){const p=PADS[i],dd=Math.hypot(p.x-x,p.z-z);
       if(dd<p.f){const w=1-SM((dd-p.r)/(p.f-p.r));h=h*(1-w)+p.y*w}}
     return h}
@@ -2639,7 +2649,7 @@ addEventListener('scroll',mcta,{passive:true});
     const slAcc=(x,z)=>{const fi=Math.round((x-minX)/ES),fj=Math.round((maxZ-z)/ES);if(fi<0||fj<0||fi>nx-1||fj>nz-1)return 0;return slope[fi*nz+fj]};
     // boulders, on the steep flanks only, clear of the road
     {let seed=53;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-      while(rockPts.length<38&&tries<5000){tries++;const x=(rnd()-.5)*332,z=(rnd()-.5)*332;const hh=hAcc(x,z);
+      while(rockPts.length<38&&tries<5000){tries++;const x=(rnd()-.5)*374,z=(rnd()-.5)*374;const hh=hAcc(x,z);
         if(hh<.5)continue;if(slAcc(x,z)<.42)continue;if(roadNear(x,z).d<11)continue;
         rockPts.push([x,hh,z,.65+rnd()*1.7,rnd()*Math.PI*2])}}
     const rockIM=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),M(0x585349,{roughness:.98,flatShading:true,map:grainTex(64,.09,2,.52)}),rockPts.length);
@@ -2647,7 +2657,7 @@ addEventListener('scroll',mcta,{passive:true});
     {const o=new THREE.Object3D();rockPts.forEach(([x,hh,z,s,ry],i)=>{o.position.set(x,hh+s*.22,z);o.scale.set(s,s*.78,s*.92);o.rotation.set(ry*.5,ry,ry*.3);o.updateMatrix();rockIM.setMatrixAt(i,o.matrix)});S.add(rockIM)}
     return {h:hAcc,slope:slAcc,paint,mesh}})();
   /* ---------- distant ridge line, so the horizon is land and not fog ---------- */
-  const farRidge=(function(){const pos=[],idx=[],col=[];const SEG=84,R0=240;
+  const farRidge=(function(){const pos=[],idx=[],col=[];const SEG=84,R0=268;
     for(let i=0;i<=SEG;i++){const a=i/SEG*Math.PI*2;const hh=16+fbm2(Math.cos(a)*7+31,Math.sin(a)*7-12)*30;
       const r=R0+noise2(Math.cos(a)*4,Math.sin(a)*4)*22;
       pos.push(Math.cos(a)*r,-4,Math.sin(a)*r,Math.cos(a)*r,hh,Math.sin(a)*r);
@@ -2682,6 +2692,26 @@ addEventListener('scroll',mcta,{passive:true});
   edgeM.map=grainTex(64,.12,1,.6);edgeM.map.repeat.set(3,1);
   strip(7.6,.04,edgeM);strip(5.8,.09,roadM);
   stripB(7,.04,edgeM);stripB(5.2,.09,roadM);
+  /* The ring, built the same way as the branch: a band swept round the circle with its
+     height read off the heightfield, so the tarmac sits on the ground rather than near it. */
+  function stripRing(w,yo,mat){const SEG=72,pos=[],idx=[],uv=[];
+    for(let i=0;i<=SEG;i++){const a=i/SEG*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a);
+      const ix=RING.x+ca*(RING.r-w/2),iz=RING.z+sa*(RING.r-w/2);
+      const ox=RING.x+ca*(RING.r+w/2),oz=RING.z+sa*(RING.r+w/2);
+      pos.push(ix,HF.h(ix,iz)+yo,iz,ox,HF.h(ox,oz)+yo,oz);
+      uv.push(0,i/SEG*26,1,i/SEG*26);
+      if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+    const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
+  stripRing(7,.04,edgeM);stripRing(5.2,.09,roadM);
+  // dashes round the inside of the circle, so it reads as a lane and not a painted disc
+  (function(){const SEG=48,im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.4),M(0xd8d2c2),SEG);
+    const o=new THREE.Object3D();let k=0;
+    for(let i=0;i<SEG;i++){const a=i/SEG*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a);
+      const dx=RING.x+ca*(RING.r-2.1),dz=RING.z+sa*(RING.r-2.1);
+      o.position.set(dx,HF.h(dx,dz)+.1,dz);o.rotation.set(-Math.PI/2,0,-a);o.updateMatrix();im.setMatrixAt(k++,o.matrix)}
+    im.count=k;S.add(im)})();
   const prog=strip(.28,.11,glow);prog.geometry.setDrawRange(0,0);
   // lane dashes (instanced)
   (function(){const cnt=Math.floor(N/5)*2;const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.3),M(0xd8d2c2),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<N;i+=5){const {p,tg,n}=at(i/N);for(const s of [1,-1]){o.position.set(p.x+n.x*2.5*s,p.y+.1,p.z+n.z*2.5*s);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();if(k<cnt)im.setMatrixAt(k++,o.matrix)}}im.count=k;S.add(im)})();
@@ -2722,7 +2752,7 @@ addEventListener('scroll',mcta,{passive:true});
     lilies.forEach(([x,z,s],i)=>{o.position.set(x,WATER_Y+.03,z);o.scale.set(s,s,s);o.rotation.set(-Math.PI/2,0,i);o.updateMatrix();lilyIM.setMatrixAt(i,o.matrix)});S.add(lilyIM)})();
   /* ---------- grass tufts near the road and the water (one draw call) ---------- */
   (function(){if(LOW)return;const T=[];let seed=709;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-    while(T.length<420&&tries<9000){tries++;const x=(rnd()-.5)*330,z=(rnd()-.5)*330;const rd=roadNear(x,z).d;
+    while(T.length<420&&tries<9000){tries++;const x=(rnd()-.5)*372,z=(rnd()-.5)*372;const rd=roadNear(x,z).d;
       const pd=Math.hypot(x-POND.x,z-POND.z);
       if(!(rd<20||pd<POND.r*1.9))continue;if(rd<4.2)continue;if(pd<pondR(x,z)*1.05)continue;
       const h=HF.h(x,z);if(HF.slope(x,z)>1.15)continue;if(h<-.2)continue;
@@ -3061,11 +3091,11 @@ addEventListener('scroll',mcta,{passive:true});
       return true};
     // copses first, then loners, so the woods clump the way real ones do
     const centres=[];let tries=0;
-    while(centres.length<16&&tries<800){tries++;const x=(rnd()-.5)*318,z=(rnd()-.5)*318;if(okSpot(x,z,26))centres.push([x,z])}
+    while(centres.length<16&&tries<800){tries++;const x=(rnd()-.5)*360,z=(rnd()-.5)*360;if(okSpot(x,z,26))centres.push([x,z])}
     centres.forEach(([cx,cz])=>{const n=7+(rnd()*11|0);
       for(let i=0;i<n;i++){const a=rnd()*6.283,r=rnd()*18+2,x=cx+Math.cos(a)*r,z=cz+Math.sin(a)*r;
         if(!okSpot(x,z,13))continue;treePts.push([x,z,.78+rnd()*.85,rnd()<.62?0:1,rnd()*6.283])}});
-    tries=0;while(treePts.length<150&&tries<4000){tries++;const x=(rnd()-.5)*328,z=(rnd()-.5)*328;
+    tries=0;while(treePts.length<150&&tries<4000){tries++;const x=(rnd()-.5)*368,z=(rnd()-.5)*368;
       if(!okSpot(x,z,13))continue;treePts.push([x,z,.7+rnd()*.8,rnd()<.5?0:1,rnd()*6.283])}
     const conifer=treePts.filter(t=>t[3]===0),broad=treePts.filter(t=>t[3]===1);
     const o=new THREE.Object3D();
@@ -3095,7 +3125,7 @@ addEventListener('scroll',mcta,{passive:true});
     treePts.forEach(([x,z,s])=>{if(roadNear(x,z).d<42)staticBox(x,HF.h(x,z)+1.2,z,.34,1.2,.34)});
     // low scrub, one draw call, to stop the ground reading as bare polygons
     if(!LOW){const B=[];let t2=0;
-      while(B.length<170&&t2<6000){t2++;const x=(rnd()-.5)*330,z=(rnd()-.5)*330;
+      while(B.length<170&&t2<6000){t2++;const x=(rnd()-.5)*372,z=(rnd()-.5)*372;
         if(roadNear(x,z).d<5.5)continue;
         if((x-POND.x)**2+(z-POND.z)**2<(pondR(x,z)*1.02)**2)continue;
         if(HF.h(x,z)<-.15||HF.slope(x,z)>1.5)continue;
@@ -3647,6 +3677,9 @@ addEventListener('scroll',mcta,{passive:true});
          if(big){c.fillStyle='#d4a83a';c.font='600 11px ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace';c.textAlign='left';c.fillText('RING '+(ringIdx+1)+'/6',qA.pos.x*sc+9,qA.pos.z*sc+4)}}}
      // traffic shows up on the map so you can see what you are racing into
      c.fillStyle='rgba(242,238,230,.75)';traffic.forEach(tc=>{const pt=at(tc.u).p;c.beginPath();c.arc(pt.x*sc,pt.z*sc,big?3.4:2.2,0,6.283);c.fill()})}
+    // the ring road, drawn as the circle it is
+    {c.strokeStyle='rgba(242,238,230,.45)';c.lineWidth=big?3:2;
+     c.beginPath();c.arc(RING.x*sc,RING.z*sc,RING.r*sc,0,6.283);c.stroke()}
     // the summit: a warm marker so the lookout reads as a real destination, pulsing once you're actually parked there
     {c.fillStyle=atSummit?'#f2b26b':'#c98a4a';c.beginPath();c.arc(PEAK.x*sc,PEAK.z*sc,big?5:3.4,0,6.283);c.fill();
      if(atSummit){c.strokeStyle='rgba(242,178,107,.8)';c.lineWidth=1.5;c.beginPath();c.arc(PEAK.x*sc,PEAK.z*sc,(big?9:6)+Math.sin(t)*2,0,6.283);c.stroke()}
