@@ -122,6 +122,8 @@ hr{border:0;border-top:1px solid var(--line);margin:0}
 #intro.gone{display:none}
 #intro::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,transparent 0%,transparent 55%,var(--paper) 100%);pointer-events:none;opacity:.5}
 .intro-in{position:relative;text-align:center}
+.intro-fallback .iplate{background:url('assets/img/heroImg.jpg') center 20%/cover no-repeat;filter:grayscale(.35) contrast(1.08)}
+.intro-fallback #iavatar{opacity:0}
 .iplate{width:min(42vh,58vw);height:min(50vh,70vw);display:block;margin:0 auto;position:relative}
 #iavatar{width:100%;height:100%;display:block}
 .intro-n{margin-top:0;font-family:var(--serif);letter-spacing:-.03em;font-weight:600;font-size:clamp(48px,7.5vw,88px);line-height:1;font-variant-numeric:tabular-nums lining-nums}
@@ -1062,7 +1064,6 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 <div id="sprog" aria-hidden="true"></div>
 <header class="nav">
   <a href="#top" class="brand" data-scroll>swastikk<i>.m</i></a>
-  <span class="mid mono">Powerbuilding coaching · Manipal University Jaipur</span>
   <a href="#apply" class="mono" data-scroll>Apply · 2 min</a>
 </header>
 
@@ -1072,7 +1073,6 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
   <div class="hero-ph"><img id="heroImg" src="assets/img/heroImg.jpg" alt="Swastik locking out a heavy deadlift while a crowd watches"></div>
   <div class="hero-in gut">
     <div>
-      <div class="kick mono">Powerbuilding coaching</div>
       <h1 id="heroH"><span class="ln"><span>Built</span></span><span class="ln"><span><em class="ct"><b>under</b></em> the bar.</span></span></h1>
       <p>68kg to 102kg, no shortcuts. 230kg deadlift, heaviest at MUJ. In person in Jaipur, online anywhere.</p>
       <div class="ctas">
@@ -1169,7 +1169,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
   <div id="dtoast"></div>
   <div id="dmob">
     <div class="dsteer"><button id="dL" aria-label="Steer left"><svg viewBox="0 0 24 24"><path d="M15 5 8 12l7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="dR" aria-label="Steer right"><svg viewBox="0 0 24 24"><path d="m9 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
-    <div class="dped"><button id="dbrk" class="mono">Brake</button><button id="dgas" class="mono">Gas</button><button id="dboost" class="mono">Boost</button></div>
+    <div class="dped"><button id="dbrk" class="mono">Brake</button><button id="dgas" class="mono">Gas</button><button id="dboost" class="mono">Boost</button><button id="dhorn" class="mono">Horn</button></div>
   </div>
   <div id="drot"><div><svg viewBox="0 0 64 64" width="72" height="72" aria-hidden="true"><rect x="22" y="10" width="20" height="36" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M14 40a20 20 0 0 0 16 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="m27 50 4 4-4 4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><p>Turn your phone sideways.</p><span class="mono">Drives best in landscape</span><button id="drotx" class="dbtn mono">Play in portrait</button></div></div>
   <div id="dview"><button id="dvx" class="dbtn mono">Close</button><img id="dvimg" alt=""><div id="dvstat" hidden></div><div id="dvtro" hidden><svg viewBox="0 0 200 200" width="220" height="220"><path d="M60 30h80v40a40 40 0 0 1-80 0z" fill="#d4a83a"/><path d="M60 40H35a15 15 0 0 0 15 30M140 40h25a15 15 0 0 1-15 30" fill="none" stroke="#d4a83a" stroke-width="8"/><rect x="88" y="105" width="24" height="30" fill="#d4a83a"/><rect x="65" y="135" width="70" height="14" fill="#d4a83a"/><rect x="55" y="149" width="90" height="12" fill="#15140f"/></svg></div><div class="dvmeta"><div id="dvt"></div><div id="dvs" class="mono"></div><div class="dvnav"><button id="dvp" class="dbtn mono">← Prev</button><span id="dvn" class="mono"></span><button id="dvnx" class="dbtn mono">Next →</button></div></div></div>
@@ -1480,10 +1480,11 @@ function buildLifter(){
 /* ===== INTRO ===== */
 const intro=$('#intro');
 function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.add('gone');lockScroll(false);if(lenis){lenis.start();lenis.resize()}heroIn();G&&ScrollTrigger.refresh()}
+addEventListener('error',()=>{if(!intro.classList.contains('gone')){intro.classList.add('intro-fallback');$('#introNum').textContent='230';$('#introL').textContent='Lockout · 230 kg';setTimeout(endIntro,500)}});
 (function(){
-  let seen=false;try{seen=!!sessionStorage.getItem('sl_intro');sessionStorage.setItem('sl_intro','1')}catch(e){}
+  if(!window.THREE)intro.classList.add('intro-fallback');
   $('#skip').onclick=()=>{G?gsap.to(intro,{yPercent:-100,duration:.7,ease:'expo.inOut',onComplete:endIntro}):endIntro()};
-  if(!G||seen){setTimeout(endIntro,0);return}
+  if(!G){$('#introNum').textContent='230';$('#introL').textContent='Lockout · 230 kg';setTimeout(endIntro,1400);return}
   const n=$('#introNum'),l=$('#introL'),flash=$('#iflash'),o={v:0,p:0};
   const L=(a,b,k)=>a+(b-a)*k;
   /* ---------------------------------------------------------------------------
@@ -2150,7 +2151,12 @@ addEventListener('scroll',mcta,{passive:true});
   /* Every photograph in the story bible belongs to a checkpoint, so none of them are
      scattered round the map as decoration any more — they are installed at the chapter
      they were taken for, in the order the bible puts them in. */
-  const EXTRAS=[];
+  const EXTRAS=[
+    {id:'album01',u:.18,side:-1,src:GP(18),ar:.566,cap:'Club gym',sub:'The long way round'},
+    {id:'album02',u:.355,side:1,src:GP(19),ar:.566,cap:'The pull',sub:'Keep climbing'},
+    {id:'album03',u:.705,side:1,src:GP(8),ar:.555,cap:'Carrying it quietly',sub:'No shortcuts'},
+    {id:'album04',u:.875,side:-1,src:GP(3),ar:.555,cap:'Still under the bar',sub:'One more lap'}
+  ];
   const WA_TXT=encodeURIComponent("Hi Swastik! I just drove through your story on the swastikk.m site. I want to join the powerbuilding coaching (₹1,980/month). How do I start the trial?");
   /* ----------------------------------------------------------------------------
      THE STORY. Sourced verbatim from "TRACK STORY BIBLE — 68 -> 102": thirteen
@@ -2267,7 +2273,7 @@ addEventListener('scroll',mcta,{passive:true});
      photos:[]},
   ];
   const VEHS={
-    car:{label:'Car',engine:2100,max:28,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
+    car:{label:'Car',engine:2100,max:16,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
   };
   const WEATHERS=[
     {id:'day',label:'Day',bg:0x9dc0dd,fog:[110,300],hemi:.62,sun:0xfff7e8,sunI:1.12,ground:0x5c6b44,leaf:0x39672b,part:null,slip:1,skyTop:0x4a86c6,skyBottom:0xc3d9ea,star:0,sunA:.7,terr:[1.06,1.1,.98],snow:0,water:0x2f6f8c,ridge:[.46,.53,.62]},
@@ -2381,7 +2387,7 @@ addEventListener('scroll',mcta,{passive:true});
   function staticBox(x,y,z,a,b,c,ry=0){const w=new CANNON.Body({mass:0,material:oM});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);w.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);world.addBody(w);return w}
   function dynBox(mesh,x,y,z,a,b,c,mass,ry=0){const bd=new CANNON.Body({mass,material:oM});bd.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));bd.position.set(x,y,z);bd.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);bd.angularDamping=.5;bd.linearDamping=.2;bd.sleepSpeedLimit=.3;world.addBody(bd);mesh.position.set(x,y,z);mesh.rotation.y=ry;S.add(mesh);dyn.push({mesh,body:bd,home:new CANNON.Vec3(x,y,z),q:bd.quaternion.clone()});return bd}
   /* ---------- road spline ---------- */
-  const PTS=[[0,-38],[38,-70],[83,-54],[99,-10],[80,35],[35,58],[-22,51],[-64,26],[-77,-22],[-48,-51]].map(([x,z])=>new THREE.Vector3(x,0,z));
+  const PTS=[[0,-38],[38,-70],[83,-54],[99,-10],[80,35],[35,58],[-22,51],[-64,26],[-77,-22],[-48,-51]].map(([x,z])=>new THREE.Vector3(x*1.18,0,z*1.18));
   const curve=new THREE.CatmullRomCurve3(PTS,true,'catmullrom',.55);
   const N=420,SAMP=[];for(let i=0;i<=N;i++)SAMP.push(curve.getPointAt(i/N));
   /* Two rises, because the story needs two. HILLS[0] is checkpoint 06's Pull Hill — the
@@ -2437,7 +2443,7 @@ addEventListener('scroll',mcta,{passive:true});
   EXTRAS.forEach(E=>{const q=placeAt(E.u,E.side,11);E.q=q;PADS.push({x:q.x,z:q.z,y:q.y,r:6,f:12})});
   PADS.push({x:PG.x,z:PG.z,y:0,r:17,f:28});
   /* ---------- one world heightfield: rolling land, a real mountain, a pond basin, a valley rim ---------- */
-  const WS=150,ES=2;
+  const WS=170,ES=2;
   /* One sample run and one bounding box per hill: a single box round both would drag every
      grid point between them through the inner loop for nothing. */
   const MASS=HILLS.map(HL=>{const pts=[];
@@ -2592,7 +2598,7 @@ addEventListener('scroll',mcta,{passive:true});
     lilies.forEach(([x,z,s],i)=>{o.position.set(x,WATER_Y+.03,z);o.scale.set(s,s,s);o.rotation.set(-Math.PI/2,0,i);o.updateMatrix();lilyIM.setMatrixAt(i,o.matrix)});S.add(lilyIM)})();
   /* ---------- grass tufts near the road and the water (one draw call) ---------- */
   (function(){if(LOW)return;const T=[];let seed=709;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-    while(T.length<420&&tries<9000){tries++;const x=(rnd()-.5)*268,z=(rnd()-.5)*268;const rd=roadNear(x,z).d;
+    while(T.length<560&&tries<12000){tries++;const x=(rnd()-.5)*310,z=(rnd()-.5)*310;const rd=roadNear(x,z).d;
       const pd=Math.hypot(x-POND.x,z-POND.z);
       if(!(rd<20||pd<POND.r*1.9))continue;if(rd<4.2)continue;if(pd<pondR(x,z)*1.05)continue;
       const h=HF.h(x,z);if(HF.slope(x,z)>1.15)continue;if(h<-.2)continue;
@@ -2926,7 +2932,7 @@ addEventListener('scroll',mcta,{passive:true});
     centres.forEach(([cx,cz])=>{const n=7+(rnd()*11|0);
       for(let i=0;i<n;i++){const a=rnd()*6.283,r=rnd()*18+2,x=cx+Math.cos(a)*r,z=cz+Math.sin(a)*r;
         if(!okSpot(x,z,13))continue;treePts.push([x,z,.78+rnd()*.85,rnd()<.62?0:1,rnd()*6.283])}});
-    tries=0;while(treePts.length<150&&tries<4000){tries++;const x=(rnd()-.5)*266,z=(rnd()-.5)*266;
+    tries=0;while(treePts.length<220&&tries<6000){tries++;const x=(rnd()-.5)*306,z=(rnd()-.5)*306;
       if(!okSpot(x,z,13))continue;treePts.push([x,z,.7+rnd()*.8,rnd()<.5?0:1,rnd()*6.283])}
     const conifer=treePts.filter(t=>t[3]===0),broad=treePts.filter(t=>t[3]===1);
     const o=new THREE.Object3D();
@@ -2973,7 +2979,8 @@ addEventListener('scroll',mcta,{passive:true});
       if(PADS.some(p=>(p.x-x)**2+(p.z-z)**2<(p.r+6)**2))continue;
       if(ringPts.some(q=>(q[0]-x)**2+(q[1]-z)**2<30*30))continue;
       if(HF.h(x,z)<.2||HF.slope(x,z)>.85)continue;
-      ringPts.push([x,z])}}
+      ringPts.push([x,z])}
+    [.18,.31,.52,.66,.79,.94].forEach(u=>{if(ringPts.length>=6)return;const {p}=at(u);ringPts.push([p.x,p.z])})}
   const rings=ringPts.map((p,i)=>{const y=HF.h(p[0],p[1]);const g=new THREE.Group();g.position.set(p[0],y,p[1]);S.add(g);
     const ring=new THREE.Mesh(new THREE.TorusGeometry(1.5,.13,8,24),new THREE.MeshBasicMaterial({color:0xd4a83a}));ring.rotation.x=Math.PI/2;ring.position.y=1.6;g.add(ring);
     const ring2=ring.clone();ring2.scale.setScalar(.6);ring2.material=new THREE.MeshBasicMaterial({color:0xf2eee6,transparent:true,opacity:.7});g.add(ring2);
@@ -3134,6 +3141,16 @@ addEventListener('scroll',mcta,{passive:true});
       t.bd.aabbNeedsUpdate=true}
     bodyIM.instanceMatrix.needsUpdate=true;cabIM.instanceMatrix.needsUpdate=true;if(frameN%2===0)whIM.instanceMatrix.needsUpdate=true;
     tlIM.instanceMatrix.needsUpdate=true;hlIM.instanceMatrix.needsUpdate=true}
+  /* lightweight traffic signals: emissive spheres and poles, no dynamic point lights */
+  const signalLights=[];
+  function addSignal(u,side){const {p,ry}=faceAt(u,side,4.8,0),g=new THREE.Group();g.position.set(p.x,p.y,p.z);g.rotation.y=ry;S.add(g);
+    const post=new THREE.Mesh(new THREE.CylinderGeometry(.08,.1,4.6,6),steel);post.position.y=2.3;g.add(post);
+    const box=new THREE.Mesh(new THREE.BoxGeometry(.42,1.35,.25),ink);box.position.set(0,4.45,0);g.add(box);
+    const mats=[M(0x3a1010,{emissive:0xff3030,emissiveIntensity:0}),M(0x3a2d0a,{emissive:0xffc13b,emissiveIntensity:0}),M(0x103a1d,{emissive:0x36e27b,emissiveIntensity:0})];
+    const bulbs=mats.map((m,i)=>{const b=new THREE.Mesh(new THREE.SphereGeometry(.13,8,8),m);b.position.set(0,4.82-i*.38,.14);g.add(b);return b});signalLights.push({bulbs,phase:u*19});
+    staticBox(p.x,p.y+2.3,p.z,.12,2.3,.12,ry)}
+  [.12,.43,.71,.92].forEach((u,i)=>addSignal(u,i%2?1:-1));
+  function updateSignals(now){const t=now/1000;signalLights.forEach(s=>{const phase=(t+s.phase)%9,active=phase<4?2:phase<5?1:0;s.bulbs.forEach((b,i)=>{b.material.emissiveIntensity=i===active?.9:.04})})}
   /* ---------- animals: circling birds, grazing herds, ducks on the pond ---------- */
   function bird(){const g=new THREE.Group();const bm=new THREE.MeshBasicMaterial({color:0x232220,side:THREE.DoubleSide});
     const body=new THREE.Mesh(new THREE.ConeGeometry(.1,.46,6),bm);body.rotation.x=Math.PI/2;g.add(body);
@@ -3255,9 +3272,9 @@ addEventListener('scroll',mcta,{passive:true});
   function applyVehicle(){veh.wheelInfos.forEach((w,i)=>{const sx=i%2?-1:1;w.chassisConnectionPointLocal.set(sx*V.xw,.05,i<2?V.zf:V.zb);w.radius=V.r;w.suspensionRestLength=V.rest;w.frictionSlip=V.slip*wx.slip;w.rollInfluence=V.roll});chassisB.angularDamping=.4}
   function saveAll(){try{localStorage.setItem('sl_drive2',JSON.stringify({seen:[...seen]}))}catch(e){}}
   /* ---------- audio ---------- */
-  let AC=null,eng=null,engG=null;
-  function audioInit(){if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();eng=AC.createOscillator();eng.type='sawtooth';eng.frequency.value=55;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=320;engG=AC.createGain();engG.gain.value=0;eng.connect(f);f.connect(engG);engG.connect(AC.destination);eng.start()}catch(e){}}
-  function blip(freq=880,dur=.12,vol=.08){if(!AC||muted)return;try{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur)}catch(e){}}
+  let AC=null,eng=null,engG=null,horn=null,hornG=null;
+  function audioInit(){if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();eng=AC.createOscillator();eng.type='triangle';eng.frequency.value=55;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=210;f.Q.value=.35;engG=AC.createGain();engG.gain.value=0;eng.connect(f);f.connect(engG);engG.connect(AC.destination);eng.start();horn=AC.createOscillator();horn.type='square';horn.frequency.value=196;const hf=AC.createBiquadFilter();hf.type='lowpass';hf.frequency.value=760;hf.Q.value=.7;hornG=AC.createGain();hornG.gain.value=0;horn.connect(hf);hf.connect(hornG);hornG.connect(AC.destination);horn.start()}catch(e){AC=null}}
+  function blip(freq=880,dur=.12,vol=.08){if(!AC||muted)return;try{const o=AC.createOscillator(),g=AC.createGain(),now=AC.currentTime;o.type='sine';o.frequency.setValueAtTime(freq,now);g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(vol,now+.012);g.gain.exponentialRampToValueAtTime(.0001,now+dur);o.connect(g);g.connect(AC.destination);o.start(now);o.stop(now+dur+.02)}catch(e){}}
   mute.onclick=()=>{muted=!muted;mute.textContent=muted?'Sound off':'Sound on'};
   /* ---------- input ---------- */
   /* The bible's "ON THE TRACK" notes, made physical. Each band is a stretch of the loop
@@ -3284,11 +3301,11 @@ addEventListener('scroll',mcta,{passive:true});
       f=f+(Z.fog-1)*w;t0=t0+(Z.tint[0]-1)*w;t1=t1+(Z.tint[1]-1)*w;t2=t2+(Z.tint[2]-1)*w}
     return {drag:d,fog:f,tint:[t0,t1,t2]}}
   const key={};
-  const KMAP={ArrowUp:'f',KeyW:'f',ArrowDown:'b',KeyS:'b',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',Space:'h',ShiftLeft:'boost',ShiftRight:'boost'};
+  const KMAP={ArrowUp:'f',KeyW:'f',ArrowDown:'b',KeyS:'b',ArrowLeft:'l',KeyA:'l',ArrowRight:'r',KeyD:'r',Space:'brake',KeyH:'horn',ShiftLeft:'boost',ShiftRight:'boost'};
   addEventListener('keydown',e=>{if(!active)return;if(e.code==='Escape'){if(boardEl.classList.contains('on'))closeBoard();else if(viewer.classList.contains('on'))closeViewer();else if(bigmap.classList.contains('on'))toggleMap();else if(cineOn)endCine();else exitDrive();return}if(cineOn){if(e.code==='Space')endCine();return}if(!driving)return;if(e.code==='KeyM'){toggleMap();return}if(e.code==='KeyR'){resetCar();return}if(e.code==='KeyE'||e.code==='Enter'){interact();return}if(e.code==='KeyL'){startRace();return}if(e.code==='KeyB'){boardEl.classList.contains('on')?closeBoard():openBoard();return}const k=KMAP[e.code];if(!k)return;key[k]=1;e.preventDefault()});
   addEventListener('keyup',e=>{const k=KMAP[e.code];if(k)key[k]=0});
   function hold(el,k){const on=e=>{e.preventDefault();key[k]=1;el.classList.add('dn');try{el.setPointerCapture(e.pointerId)}catch(_){}if(navigator.vibrate)navigator.vibrate(8)};const off=()=>{key[k]=0;el.classList.remove('dn')};el.addEventListener('pointerdown',on);['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,off));el.addEventListener('contextmenu',e=>e.preventDefault())}
-  hold($('#dL'),'l');hold($('#dR'),'r');hold($('#dgas'),'f');hold($('#dbrk'),'b');hold($('#dboost'),'boost');
+  hold($('#dL'),'l');hold($('#dR'),'r');hold($('#dgas'),'f');hold($('#dbrk'),'b');hold($('#dboost'),'boost');hold($('#dhorn'),'horn');
   $('#dresetb').onclick=resetCar;prompt.addEventListener('click',()=>interact());
 
   /* ---------- tool menu: five buttons collapse behind one on touch ---------- */
@@ -3433,7 +3450,7 @@ addEventListener('scroll',mcta,{passive:true});
   mm.onclick=toggleMap;$('#dbigx').onclick=toggleMap;
   /* ---------- loop ---------- */
   const camT=new THREE.Vector3(),look=new THREE.Vector3(),fwd=new THREE.Vector3(),tmp=new THREE.Vector3(),lastV=new THREE.Vector3();
-  let last=performance.now(),flipT=0,frameN=0,spdS=0,shake=0,idleT=0,cineOn=false,inPond=false,sub=0,pondToast=0,liftShown=false,missHint=false,airT=0;
+  let last=performance.now(),flipT=0,frameN=0,spdS=0,shake=0,idleT=0,cineOn=false,inPond=false,sub=0,pondToast=0,liftShown=false,missHint=false,airT=0,lastImpact=0;
   let act=-1,chapEase=0,camRoll=0;const lookT=new THREE.Vector3();
   let idleLast=0,idleLow=false;
   function loop(now){requestAnimationFrame(loop);
@@ -3457,7 +3474,7 @@ addEventListener('scroll',mcta,{passive:true});
       inPond=sub>.06;
       ZN=zoneAt(progU);const zd=ZN.drag;
       const boost=key.boost?1:0;
-      const eMul=(1-sub*.66)*(1-zd*.52),vmax=V.max*(1+boost*.28)*(1-sub*.68)*(1-zd*.38);
+      const eMul=(1-sub*.66)*(1-zd*.52),vmax=(V.max+boost*4.17)*(1-sub*.68)*(1-zd*.38);
       const force=(f-b)*V.engine*(1+boost*.4)*eMul*(sp>vmax?0:1);veh.applyEngineForce(-force,2);veh.applyEngineForce(-force,3);
       /* Downhill used to run away: engine force cuts out at V.max, but nothing opposed gravity
          on a descent, so the car kept accelerating with only the 2.2 coast brake resisting it.
@@ -3471,7 +3488,7 @@ addEventListener('scroll',mcta,{passive:true});
       const gradeBrake=grade*10*(f?0:1);         // gentle passive braking; the downhill remains driveable
       const govBrake=Math.min(18,over*42);        // scales in only once past the cap
       const coast=(f===0&&b===0)?.8:0;
-      const brake=key.h?46:Math.max(coast,gradeBrake,govBrake);
+      const brake=key.brake?46:Math.max(coast,gradeBrake,govBrake);
       for(let i=0;i<4;i++)veh.setBrake(brake,i);
       // hard ceiling: if it is still climbing past the cap, damp the velocity directly
       if(sp>vmax*1.18&&!inPond){const s=vmax*1.18/sp;chassisB.velocity.x*=s;chassisB.velocity.z*=s}
@@ -3483,7 +3500,7 @@ addEventListener('scroll',mcta,{passive:true});
       let steerIn=l-rr;
       if(tiltOn&&steerIn===0)steerIn=tiltSteer;
       const st=steerIn*V.steer*Math.max(.35,1-sp/46);steerActual+=(st-steerActual)*Math.min(1,dt*8);veh.setSteeringValue(steerActual,0);veh.setSteeringValue(steerActual,1);
-      tailM.emissiveIntensity=(b||key.h)?1.6:boost?1.2:.5;
+      tailM.emissiveIntensity=(b||key.brake)?1.6:boost?1.2:.5;
       // cannon integrates damping as pow(1-damping,dt), so anything at or above 1 turns the whole
       // body into NaN on the next step. That was the real cause of the car "flying" over the pond.
       chassisB.linearDamping=.01+sub*.82;
@@ -3497,9 +3514,9 @@ addEventListener('scroll',mcta,{passive:true});
         const v=chassisB.velocity,vs=v.length();
         if(vs>.05){const dq=Math.min(chassisB.mass*13,vs*vs*7.5)*sub;chassisB.applyForce(new CANNON.Vec3(-v.x/vs*dq,-v.y/vs*dq*.4,-v.z/vs*dq),chassisB.position)}
         if(now-pondToast>6000){pondToast=now;toastMsg(sub>.6?'Wading through, take it slow':'Careful, shallow water')}}
-      {const localVel=chassisB.velocity.clone();chassisB.quaternion.conjugate().vmult(localVel,localVel);const lateral=Math.min(1,Math.abs(localVel.x)/8),rearGrip=key.h?.58:1,grip=V.slip*wx.slip*(1-sub*.72)*(1+grade*.55)*(1+lateral*.22);for(let i=0;i<veh.wheelInfos.length;i++)veh.wheelInfos[i].frictionSlip=grip*(i>1?rearGrip:1)}
+      {const localVel=chassisB.velocity.clone();chassisB.quaternion.conjugate().vmult(localVel,localVel);const lateral=Math.min(1,Math.abs(localVel.x)/8),rearGrip=key.brake?.58:1,grip=V.slip*wx.slip*(1-sub*.72)*(1+grade*.55)*(1+lateral*.22);for(let i=0;i<veh.wheelInfos.length;i++)veh.wheelInfos[i].frictionSlip=grip*(i>1?rearGrip:1)}
       world.step(1/60,dt,3);
-      const dv=tmp.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z).sub(lastV).length();lastV.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z);if(dv>7){shake=Math.min(1,dv/25);blip(90,.25,.15)}
+      const dv=tmp.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z).sub(lastV).length();lastV.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z);if(dv>10&&now-lastImpact>280){lastImpact=now;shake=Math.min(1,dv/25);blip(120,.16,.055)}
       if(chassisB.position.y<-9||!isFinite(chassisB.position.y)||!isFinite(chassisB.velocity.x)){resetCar();toastMsg('Pulled you back onto the road')}
       const up=new CANNON.Vec3(0,1,0);chassisB.quaternion.vmult(up,up);if(up.y<.25){flipT+=dt;if(flipT>1.8){resetCar();flipT=0;toastMsg('Back on the road, lock in')}}else flipT=0;
       if(f||b||l||rr||Math.abs(tiltSteer)>.12)idleT=0;else{idleT+=dt;if(idleT>10){idleT=-999;toastMsg(TOUCH?'Hold GAS on the right':'W to drive. Follow the arrow.')}}
@@ -3554,8 +3571,8 @@ addEventListener('scroll',mcta,{passive:true});
             lapStart=now;lapNo++;lapProg=0;lapVoid=false;offT=0;lapEl.classList.remove('void')}}
         if(frameN%4===0&&!lapArmed){lapT.textContent=fmtT(now-lapStart);lapN.textContent='Lap '+lapNo;
           for(let i=0;i<lapSecs.length;i++)lapSecs[i].classList.toggle('on',lapProg>(i+1)*.25-.25)}}
-      if(AC&&engG){const spq=isFinite(sp)?sp:0;engG.gain.value=muted?0:.05+Math.min(.06,spq/300);eng.frequency.value=55+spq*9+(f?12:0)}
-    }else if(AC&&engG)engG.gain.value=0;
+      if(AC&&engG){const spq=isFinite(sp)?sp:0,target=muted?0:(f?.022:.012)+Math.min(.045,spq/5200);engG.gain.setTargetAtTime(target,AC.currentTime,.045);eng.frequency.setTargetAtTime(48+spq*5+(f?10:0),AC.currentTime,.06);if(hornG)hornG.gain.setTargetAtTime(key.horn&&!muted?.035:0,AC.currentTime,.025)}
+    }else if(AC&&engG){engG.gain.setTargetAtTime(0,AC.currentTime,.08);if(hornG)hornG.gain.setTargetAtTime(0,AC.currentTime,.03)}
     car.position.copy(chassisB.position);car.quaternion.copy(chassisB.quaternion);
     if(sub>0&&active){car.position.y-=sub*.3;ripple.position.set(car.position.x,WATER_Y+.05,car.position.z);ripple.material.opacity=Math.min(.55,sp/9)*sub;ripple.scale.setScalar(1.7+(now/300)%1.3)}else ripple.material.opacity=0;
     waterNorm.offset.set(now/26000,now/17000);
@@ -3565,7 +3582,7 @@ addEventListener('scroll',mcta,{passive:true});
     if(active)for(let i=0;i<dyn.length;i++){const d=dyn[i];if(d.body.sleepState===2&&frameN%30)continue;d.mesh.position.copy(d.body.position);d.mesh.quaternion.copy(d.body.quaternion);if(d.body.position.y<-5){d.body.position.copy(d.home);d.body.quaternion.copy(d.q);d.body.velocity.setyou();d.body.angularVelocity.setyou()}}
     const tt=now/1000;if(active)anims.forEach(a=>{const dd=Math.hypot(a.g.pos.x-car.position.x,a.g.pos.z-car.position.z);if(dd<70)a.pose(a.F,tt*a.speed)});
     rings.forEach(q=>{if(q.g.visible){q.ring.rotation.z+=dt*1.5;q.ring2.rotation.z-=dt*2.1}});
-    if(active&&driving)updTraffic(dt,now);
+    if(active&&driving){updTraffic(dt,now);updateSignals(now)}
     if(active)birds.forEach(b=>{b.a+=dt*b.sp;const x=POND.x+Math.cos(b.a)*b.r,z=POND.z+Math.sin(b.a)*b.r;b.g.position.set(x,b.y+Math.sin(tt*.6+b.a)*.6,z);b.g.rotation.y=-b.a+Math.PI/2;const fl=Math.sin(tt*9+b.a)*.9;b.wL.rotation.z=fl;b.wR.rotation.z=-fl});
     if(active)for(let ci=0;ci<critters.length;ci++){const c=critters[ci];
       const near2=active?Math.hypot(car.position.x-c.g.position.x,car.position.z-c.g.position.z):999;
@@ -3655,7 +3672,7 @@ addEventListener('scroll',mcta,{passive:true});
   function endCine(){if(!cineOn)return;cineOn=false;missEl.classList.add('on');if(!missHint){missHint=true;const m0=curMission();if(m0)setTimeout(()=>toastMsg('Mission · '+m0.name),1200)}clearTimeout(cine._t);cine.classList.remove('on');driving=true;hud.classList.add('on');if(TOUCH)mob.classList.add('on');checkRot();blip(440,.3,.08);objEl.classList.add('on');updBW()}
   cine.onclick=endCine;
   function resize(){W=sec.clientWidth;H=sec.clientHeight;R.setPixelRatio(DPR());R.setSize(W,H,false);C.aspect=W/H;C.updateProjectionMatrix();if(sun.shadow)sun.shadow.needsUpdate=true}addEventListener('resize',resize);
-  function enterDrive(){active=true;sec.classList.add('active');document.documentElement.classList.add('driving');if(TOUCH){sec.classList.add('touch');try{const fs=sec.requestFullscreen||sec.webkitRequestFullscreen;if(fs){const pr=fs.call(sec);if(pr&&pr.then)pr.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(_){}}).catch(()=>{})}}catch(_){}}lenis&&lenis.stop();document.body.classList.add('locked');resize();audioInit();hint.textContent=TOUCH?'':'WASD drive · E look closer · L time a lap · M map · R reset';cinematic()}
+  function enterDrive(){active=true;sec.classList.add('active');document.documentElement.classList.add('driving');if(TOUCH){sec.classList.add('touch');try{const fs=sec.requestFullscreen||sec.webkitRequestFullscreen;if(fs){const pr=fs.call(sec);if(pr&&pr.then)pr.then(()=>{try{screen.orientation.lock('landscape').catch(()=>{})}catch(_){}}).catch(()=>{})}}catch(_){}}lenis&&lenis.stop();document.body.classList.add('locked');resize();audioInit();hint.textContent=TOUCH?'':'WASD drive · H horn · Space handbrake · Shift boost · E look closer · L lap · M map · R reset';cinematic()}
   function exitDrive(){stopRace();closeBoard();missEl.classList.remove('on');try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}catch(_){}document.documentElement.classList.remove('driving');fin.classList.remove('on');objEl.classList.remove('on');wrongEl.classList.remove('on');storyEl.classList.remove('on');liftEl.classList.remove('on');rot.classList.remove('on');active=false;driving=false;cineOn=false;clearTimeout(cine._t);cine.classList.remove('on');sec.classList.remove('active');lenis&&lenis.start();document.body.classList.remove('locked');hud.classList.remove('on');mob.classList.remove('on');viewer.classList.remove('on');bigmap.classList.remove('on');for(const k in key)key[k]=0;resize()}
   startBtn.onclick=enterDrive;$('#dexit').onclick=exitDrive;
 
