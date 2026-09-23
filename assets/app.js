@@ -890,6 +890,7 @@ addEventListener('scroll',mcta,{passive:true});
 /* ===== DRIVE: story world with physics (three.js + cannon.js) ===== */
 (function(){
   if(!window.THREE||!window.CANNON)return;
+  if(matchMedia('(max-width:900px)').matches||matchMedia('(pointer:coarse)').matches){const d=document.getElementById('drive');if(d)d.remove();return}
   const PH={before:$('#bImg').src,flex:$('#aImg').src,dead:$('#heroImg').src,mirror:$('#fImg').src,lock:$('#gLock').src,dbb:$('#gDbb').src,tri:$('#gTri').src,curl:$('#gCurl').src,crowd:$('#gCrowd').src};
   const GP=i=>{const e=$('#gp'+i);return e?e.src:''};
   /* Every photograph in the story bible belongs to a checkpoint, so none of them are
