@@ -739,12 +739,6 @@ if(G){
       scrollTrigger:{trigger:el,start:'top 88%',once:true},
       onUpdate(){el.textContent=pre+o.v.toFixed(dp||0)+post}});
   }
-  {const amt=$('.price .amt');
-   if(amt){const i=amt.querySelector('i'),n=document.createElement('span');
-     n.textContent='₹0';amt.insertBefore(n,i);
-     // strip the original text node so only the counter and the suffix remain
-     [...amt.childNodes].forEach(k=>{if(k.nodeType===3)k.remove()});
-     countUp(n,66,'₹','');}}
   {const b=$$('#tst b');
    if(b[0]){const el=b[0];el.textContent='68 → 68 kg';
      const o={v:68};
