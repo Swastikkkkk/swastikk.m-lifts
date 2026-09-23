@@ -415,11 +415,12 @@ footer{position:relative;overflow:hidden}
 #barSvg .pl rect{fill:var(--pc)}
 #barSvg .pl.s2 rect{fill:var(--pc)}#barSvg .pl.s3 rect{fill:var(--pc)}
 .price{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,6vw,100px);align-items:end}
+.price .plan+.plan{border-top:1px solid var(--pline);padding-top:36px}
 .price .amt{font-family:var(--serif);font-weight:600;font-size:clamp(90px,14vw,210px);line-height:.85;letter-spacing:-.042em;font-variant-numeric:lining-nums}
 .price .amt i{font-weight:500;font-size:.28em;color:var(--mute2)}
 .price .per{margin-top:18px;color:var(--mute2);font-size:clamp(17px,1.4vw,20px)}
 .inc{list-style:none;margin:0;padding:0;border-top:1px solid var(--pline)}
-.inc li{padding:16px 0;border-bottom:1px solid var(--pline);display:flex;justify-content:space-between;gap:16px;font-size:clamp(16px,1.3vw,19px)}
+.inc li{padding:19px 0;border-bottom:1px solid var(--pline);display:flex;justify-content:space-between;gap:16px;font-size:clamp(16px,1.3vw,19px)}
 .inc li span{color:var(--mute2);font-size:13px;white-space:nowrap}
 .price .ctas{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px}
 .where{display:flex;gap:28px;flex-wrap:wrap;margin-top:22px;color:var(--mute2)}
@@ -443,11 +444,11 @@ footer{position:relative;overflow:hidden}
 .ig{display:inline-flex;align-items:center;gap:10px;color:var(--mute);border-bottom:1px solid var(--line);padding-bottom:3px}
 .ig:hover{color:var(--paper)}
 .list{list-style:none;margin:clamp(30px,4vw,50px) 0 0;padding:0;border-top:1px solid var(--line)}
-.list li{display:grid;grid-template-columns:60px 1fr auto;gap:20px;align-items:baseline;padding:22px 0;border-bottom:1px solid var(--line)}
+.list li{display:grid;grid-template-columns:60px 1fr auto;gap:24px;align-items:baseline;padding:26px 0;border-bottom:1px solid var(--line)}
 .list .n{font-family:var(--serif);font-style:normal;color:var(--mute)}
 .list h3{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(26px,3vw,44px);line-height:1;letter-spacing:-.028em}
 .list span{color:var(--mute);font-size:14px;text-align:right}
-@media (max-width:900px){.price,.tst{grid-template-columns:1fr}.list li{grid-template-columns:40px 1fr}.list li>span:last-child{grid-column:2;text-align:left}.wa{right:16px}.m-cta{display:none}}
+@media (max-width:900px){.price,.tst{grid-template-columns:1fr}.list li{grid-template-columns:40px 1fr}.list li>span:last-child{grid-column:2;text-align:left}.wa{right:16px}.m-cta{display:none}#drive{display:none!important}}
 
 
 /* ===== guide character ===== */
@@ -864,7 +865,7 @@ html.driving #bubble{left:88px;bottom:125px}
 .tst div{box-shadow:inset 0 0 0 1px rgba(242,238,230,.05)}
 /* ===== premium pass: one typeface, real optical tracking, Apple-style geometry ===== */
 html{-webkit-text-size-adjust:100%}
-body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-.006em;line-height:1.62}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-.003em;line-height:1.62}
 /* SF has no italic cut here, and a synthesised slant is the fastest way to look cheap.
    Emphasis is carried by weight and tone instead. */
 *{font-synthesis:none;font-synthesis-style:none}
@@ -877,11 +878,11 @@ em,i,cite,address,var{font-style:normal}
 .mono{letter-spacing:.1em;font-weight:500}
 .num,#dkg,#dspeed,#dlapt,.stat b,.bw,.price .amt,#load .kg,.intro-n,.tile b,.rpe b,.lift b{font-variant-numeric:tabular-nums lining-nums}
 /* display text: tighter the larger it gets, which is what SF expects */
-.hero h1{letter-spacing:-.042em}
-.h2,.foot-cta h2{letter-spacing:-.036em}
-.mani p{letter-spacing:-.03em}
-.bw,.price .amt,#load .kg,.intro-n{letter-spacing:-.045em}
-.lede,.hero p,.row p,.step-i p,.qa p{letter-spacing:-.011em}
+.hero h1{letter-spacing:-.03em}
+.h2,.foot-cta h2{letter-spacing:-.026em}
+.mani p{letter-spacing:-.022}
+.bw,.price .amt,#load .kg,.intro-n{letter-spacing:-.03em}
+.lede,.hero p,.row p,.step-i p,.qa p{letter-spacing:-.006em}
 h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 /* geometry: Apple's continuous-corner look, applied lightly so the grid survives */
 .btn{border-radius:980px;padding:17px 28px;letter-spacing:-.008em;box-shadow:0 1px 2px rgba(0,0,0,.18),0 8px 22px rgba(0,0,0,.14)}
@@ -1273,13 +1274,12 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 <!-- PRICE -->
 <section class="sec paper gut" id="price">
   <div class="chap mono"><span>III · The price</span></div>
+  <h2 class="h2" style="margin-bottom:clamp(26px,4vw,44px)">Two ways in.</h2>
   <div class="price">
-    <div>
-      <div class="amt">₹66<i>a day</i></div>
-      <p class="per">₹1,980 a month. One plan, everything above, no upsell at the end.</p>
-      <div class="where mono"><span>In person · MUJ, Jaipur</span><span>Online · anywhere</span></div>
-    </div>
-    <div>
+    <div class="plan">
+      <div class="chap mono" style="margin-bottom:14px"><span>Online · anywhere</span></div>
+      <div class="amt">₹750<i>a month</i></div>
+      <p class="per">Full coaching over video and WhatsApp. No upsell at the end.</p>
       <ul class="inc">
         <li>Your own program<span>rewritten every block</span></li>
         <li>Form checks<span>send as many as you want</span></li>
@@ -1289,12 +1289,26 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
       </ul>
       <div class="ctas">
         <a href="#apply" class="btn ink" data-scroll><span>Apply</span><span class="ar">→</span></a>
-        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching%20(%E2%82%B91%2C980%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" class="lnk" style="border-color:var(--ink)" target="_blank" rel="noopener">Ask on WhatsApp</a>
+        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20ONLINE%20powerbuilding%20coaching%20(%E2%82%B9750%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" class="lnk" style="border-color:var(--ink)" target="_blank" rel="noopener">Ask on WhatsApp</a>
+      </div>
+    </div>
+    <div class="plan">
+      <div class="chap mono" style="margin-bottom:14px"><span>In person · MUJ, Jaipur</span></div>
+      <div class="amt">₹1,980<i>a month</i></div>
+      <p class="per">Everything in Online, plus hands-on sessions together.</p>
+      <ul class="inc">
+        <li>Everything in Online<span>program, checks, food, check-ins</span></li>
+        <li>In-person sessions<span>live coaching at the gym</span></li>
+        <li>Hands-on cues<span>technique fixed in real time</span></li>
+        <li>Spotting<span>push heavier, safely</span></li>
+      </ul>
+      <div class="ctas">
+        <a href="#apply" class="btn ink" data-scroll><span>Apply</span><span class="ar">→</span></a>
+        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20IN-PERSON%20powerbuilding%20coaching%20(%E2%82%B91%2C980%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" class="lnk" style="border-color:var(--ink)" target="_blank" rel="noopener">Ask on WhatsApp</a>
       </div>
     </div>
   </div>
 </section>
-
 <!-- RESULTS -->
 <section class="sec gut" id="results">
   <div class="chap mono"><span>IV · Results</span></div>
