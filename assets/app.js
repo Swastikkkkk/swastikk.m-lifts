@@ -652,7 +652,7 @@ if(G){
     xr+=w+4;
   });
   const lg=$$('#pL .pl'),rg=$$('#pR .pl'),num=$('#loadNum'),lab=$('#loadL');
-  const labels=['Empty bar','Warm-up','Working weight','Heavy','Very heavy','230 kg · MUJ record'];
+  const labels=['Empty bar','Warm-up','Working weight','Heavy','Very heavy','230 kg · PR'];
   if(!G){num.textContent='230';lab.textContent=labels[5];return}
   gsap.set(lg,{x:-700,opacity:0});gsap.set(rg,{x:700,opacity:0});
   const o={v:20};
@@ -945,7 +945,7 @@ addEventListener('scroll',mcta,{passive:true});
     {id:'cp06',chapter:'06',name:'The pull hill',u:.395,side:-1,kind:'photo',bw:81,big:true,anim:'deadlift',
      hook:"242.5kg came off that floor. My ego didn't survive the pull.",
      stat:'155 KG FAILED  →  242.5 KG WITNESSED',
-     title:'242.5 kg',sub:"MUJ all-time record, witnessed",pr:'242.5 kg',prName:'MUJ all-time record, witnessed',
+     title:'242.5 kg',sub:"All-time record, witnessed",pr:'242.5 kg',prName:'All-time record, witnessed',
      line:'"242.5kg came off that floor. My ego didn\u2019t survive the pull."',
      line2:'It broke something and rebuilt it better. Strength was the game. Muscle was the byproduct.',
      photos:[{src:GP(13),ar:.564,cap:'His attempt'},{src:GP(19),ar:.566,cap:'242.5 off the floor'}]},
@@ -977,7 +977,7 @@ addEventListener('scroll',mcta,{passive:true});
     {id:'cp10',chapter:'10',name:'The platform',u:.762,side:-1,kind:'trophy',bw:102,
      hook:'Four months back from surgery. New record. My name on it.',
      stat:'230 KG  ·  4 MONTHS AFTER SURGERY',
-     title:'230 kg',sub:"MUJ all-time conventional deadlift",pr:'230 kg',prName:'MUJ all-time conventional deadlift',
+     title:'230 kg',sub:"All-time conventional deadlift record",pr:'230 kg',prName:'All-time conventional deadlift record',
      line:'"Four months back from surgery. New record. My name on it."',
      line2:'Rebuilt from close to nothing, and the heaviest conventional pull the place has seen.',
      photos:[{src:PH.dead,ar:1.780,cap:'The record'}]},
@@ -2100,29 +2100,110 @@ addEventListener('scroll',mcta,{passive:true});
   const L_ON=[0xe0352b,0xf0a828,0x35c05a],L_OFF=[0x2c1512,0x2b2412,0x13291a];
   function updLights(ts){for(let i=0;i<LIGHTS.length;i++){const L=LIGHTS[i],ph=lightPhase(L,ts);
     for(let k=0;k<3;k++)L.lamps[k].color.setHex(ph===k?L_ON[k]:L_OFF[k])}}
+  /* ---------- car models ----------
+     Real silhouettes instead of stacked boxes. The side profile is drawn once as a shape
+     with proper wheel arches and extruded with a rounded bevel, the glasshouse sits on top
+     and tucks in towards the roof, and paint, glass and chrome get a small reflection map
+     so the bodywork catches the sky the way lacquer does. Player and traffic share it. */
+  const CARENV=(function(){const cv=(fn)=>{const c=document.createElement('canvas');c.width=c.height=64;fn(c.getContext('2d'));return c};
+    const side=cv(x=>{const g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#6f86a0');g.addColorStop(.46,'#b4bec6');g.addColorStop(.52,'#3c3b37');g.addColorStop(1,'#161513');x.fillStyle=g;x.fillRect(0,0,64,64)});
+    const up=cv(x=>{x.fillStyle='#7d93ab';x.fillRect(0,0,64,64);const g=x.createRadialGradient(32,32,2,32,32,30);g.addColorStop(0,'#e8eef4');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)});
+    const dn=cv(x=>{x.fillStyle='#22211e';x.fillRect(0,0,64,64)});
+    const t=new THREE.CubeTexture([side,side,up,dn,side,side]);t.needsUpdate=true;return t})();
+  const phong=(c,o)=>new THREE.MeshPhongMaterial(Object.assign({color:c,specular:0x4a4a4a,shininess:80,envMap:CARENV,reflectivity:.14,combine:THREE.MixOperation},o||{}));
+  const carGlassM=phong(0x080b0e,{specular:0x8a8a8a,shininess:110,reflectivity:.28,side:THREE.DoubleSide});
+  const chromeM=phong(0xd2d4d6,{specular:0xffffff,shininess:120,reflectivity:.7});
+  const alloyM=phong(0xb2b5b8,{specular:0xbbbbbb,shininess:80,reflectivity:.42});
+  const trimM=new THREE.MeshPhongMaterial({color:0x131313,specular:0x1c1c1c,shininess:18,side:THREE.DoubleSide});
+  const tyreM=new THREE.MeshLambertMaterial({color:0x1c1c1c,side:THREE.DoubleSide});
+  const discM=new THREE.MeshLambertMaterial({color:0x6a6966}),plateM=new THREE.MeshLambertMaterial({color:0xefece4});
+  const npcHeadM=new THREE.MeshLambertMaterial({color:0xfff2c0,emissive:0xfff2c0,emissiveIntensity:1});
+  /* bake a group's meshes into one mesh per material, so a car is a handful of draw calls */
+  function bakeGroup(root){root.updateMatrixWorld(true);const inv=new THREE.Matrix4().copy(root.matrixWorld).invert(),byM=new Map(),kill=[],mx=new THREE.Matrix4();
+    root.traverse(o=>{if(!o.isMesh||o.userData.keep)return;const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+      mx.multiplyMatrices(inv,o.matrixWorld);g.applyMatrix4(mx);
+      if(mx.determinant()<0){const p=g.attributes.position.array,n=g.attributes.normal.array;for(let i=0;i<p.length;i+=9)for(let k=0;k<3;k++){let t=p[i+3+k];p[i+3+k]=p[i+6+k];p[i+6+k]=t;t=n[i+3+k];n[i+3+k]=n[i+6+k];n[i+6+k]=t}}
+      if(!byM.has(o.material))byM.set(o.material,[]);byM.get(o.material).push(g);kill.push(o)});
+    kill.forEach(o=>o.parent.remove(o));
+    byM.forEach((gs,m)=>{let n=0;gs.forEach(g=>n+=g.attributes.position.count);const P=new Float32Array(n*3),N=new Float32Array(n*3);let off=0;
+      gs.forEach(g=>{P.set(g.attributes.position.array,off*3);N.set(g.attributes.normal.array,off*3);off+=g.attributes.position.count;g.dispose()});
+      const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(P,3));bg.setAttribute('normal',new THREE.BufferAttribute(N,3));bg.computeBoundingSphere();
+      const me=new THREE.Mesh(bg,m);me.userData.keep=true;me.castShadow=!LOW&&m!==carGlassM;me.receiveShadow=false;root.add(me)})}
+  function extrudeSide(shape,width,bev){const g=new THREE.ExtrudeGeometry(shape,{depth:width-bev*2,bevelEnabled:true,bevelThickness:bev,bevelSize:bev*.8,bevelSegments:3,curveSegments:12});
+    g.translate(0,0,-(width-bev*2)/2);g.rotateY(-Math.PI/2);return g}
+  function makeWheel(r,wd,sx,detail){const w=new THREE.Group();w.rotation.order='YXZ';const spin=new THREE.Group();w.add(spin);const inn=new THREE.Group();inn.scale.x=sx;spin.add(inn);
+    const put=(geo,m,x,y,z,rx)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y||0,z||0);if(rx)o.rotation.x=rx;inn.add(o);return o};
+    const pr=[[r*.66,-wd/2],[r*.9,-wd/2],[r*.97,-wd*.4],[r,-wd*.2],[r,wd*.2],[r*.97,wd*.4],[r*.9,wd/2],[r*.66,wd/2]].map(p=>new THREE.Vector2(p[0],p[1]));
+    put(new THREE.LatheGeometry(pr,detail?26:18).rotateZ(Math.PI/2),tyreM,0);
+    put(new THREE.CylinderGeometry(r*.66,r*.66,wd*.86,detail?22:14,1,true).rotateZ(Math.PI/2),trimM,0);
+    if(!detail)put(new THREE.CylinderGeometry(r*.6,r*.6,.03,14).rotateZ(Math.PI/2),trimM,wd*.18);
+    put(new THREE.TorusGeometry(r*.64,.022,6,detail?24:16).rotateY(Math.PI/2),alloyM,wd*.4);
+    const NS=detail?6:5;for(let k=0;k<NS;k++){const a=k/NS*Math.PI*2,s=put(new THREE.BoxGeometry(.045,r*.5,detail?.085:.1),alloyM,wd*.36,Math.cos(a)*r*.33,Math.sin(a)*r*.33,a)}
+    put(new THREE.CylinderGeometry(r*.14,r*.16,.07,12).rotateZ(Math.PI/2),chromeM,wd*.4);
+    if(detail){put(new THREE.CylinderGeometry(r*.5,r*.5,.035,20).rotateZ(Math.PI/2),discM,wd*.06)}
+    bakeGroup(spin);
+    if(detail){const cg=new THREE.Group();cg.scale.x=sx;w.add(cg);const c=new THREE.Mesh(new THREE.BoxGeometry(.07,.13,.2),new THREE.MeshLambertMaterial({color:0xb8322f}));c.position.set(wd*.16,r*.26,-r*.2);c.rotation.x=.7;cg.add(c)}
+    return {w,spin}}
+  /* o: paint, roof (colour or null), r wheel radius, zf/zb axle z, F/B nose and tail z, W width, xw/ww wheel track and width, wagon, head/tail materials, wheels */
+  function buildCar(o){const g=new THREE.Group(),body=new THREE.Group();g.add(body);
+    const {r,zf,zb,F,B,W}=o,A=r+.13,rc=r,sill=.27,belt=.9;
+    const paint=phong(o.paint),roofM=o.roof!=null?phong(o.roof,{reflectivity:.1,specular:0x3a3a3a}):paint;
+    const tailM2=o.tail||new THREE.MeshLambertMaterial({color:0xff3b30,emissive:0xff2a20,emissiveIntensity:.55}),headM3=o.head||npcHeadM;
+    // lower body: bumper to bumper with the arches cut into the bottom edge
+    const s=new THREE.Shape();s.moveTo(F-.06,.3);s.lineTo(zf+A,.3);s.lineTo(zf+A,rc);s.absarc(zf,rc,A,0,Math.PI,false);s.lineTo(zf-A,sill);s.lineTo(zb+A,sill);s.lineTo(zb+A,rc);
+    s.absarc(zb,rc,A,0,Math.PI,false);s.lineTo(zb-A,.3);s.lineTo(B+.08,.3);s.quadraticCurveTo(B-.04,.34,B-.02,.56);s.lineTo(B-.01,.78);s.quadraticCurveTo(B,belt+.03,B+.16,belt+.03);
+    s.quadraticCurveTo(B+.6,belt+.05,zb+.2,belt+.02);s.lineTo(zf-.4,belt);s.quadraticCurveTo(F-.5,belt-.08,F-.12,.74);s.quadraticCurveTo(F+.03,.71,F+.04,.6);s.lineTo(F+.03,.5);s.quadraticCurveTo(F+.02,.34,F-.06,.3);
+    const bw=W-.04;const lb=new THREE.Mesh(extrudeSide(s,bw,.09),paint);body.add(lb);
+    // glasshouse, pulled in towards the roof (tumblehome)
+    const wsB=zf-.4,rf=o.wagon?-.25:.02,rr=o.wagon?B+.45:B+1.25,rb=o.wagon?B+.25:B+.52,rt=belt+.54;
+    const P0=new THREE.Vector2(wsB,belt-.04),C0=new THREE.Vector2(wsB-.42,belt+.44),P1=new THREE.Vector2(rf-.05,rt-.02);
+    const C1=new THREE.Vector2((rf+rr)/2,rt+.06),P2=new THREE.Vector2(rr,rt-.04),C2=o.wagon?new THREE.Vector2(rb-.02,rt-.1):new THREE.Vector2(rr-.4,belt+.34),P3=new THREE.Vector2(rb,belt-.02);
+    const cs=new THREE.Shape();cs.moveTo(P3.x,belt-.06);cs.lineTo(P0.x,belt-.06);cs.lineTo(P0.x,P0.y);cs.quadraticCurveTo(C0.x,C0.y,P1.x,P1.y);cs.quadraticCurveTo(C1.x,C1.y,P2.x,P2.y);cs.quadraticCurveTo(C2.x,C2.y,P3.x,P3.y);
+    const cw=W-.32,cb=.1,TH=.3;
+    const tumble=geo=>{const p=geo.attributes.position;for(let i=0;i<p.count;i++){const y=p.getY(i);if(y>belt)p.setX(i,p.getX(i)*(1-(y-belt)*TH))}p.needsUpdate=true;return geo};
+    const cab=new THREE.Mesh(tumble(extrudeSide(cs,cw,cb)),roofM);body.add(cab);
+    // windscreen and rear glass follow the cabin curve, lifted just off it
+    const strip=(a,c,b,t0,t1,hw)=>{const pos=[],idx=[],SEG=10,q=new THREE.QuadraticBezierCurve(a,c,b);
+      for(let i=0;i<=SEG;i++){const t=t0+(t1-t0)*i/SEG,p=q.getPoint(t),d=q.getTangent(t),nz=d.y,ny=-d.x,off=cb*.8+.012;
+        const y=p.y+ny*off,z=p.x+nz*off;pos.push(-hw,y,z,hw,y,z);if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
+      const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));gg.setIndex(idx);gg.computeVertexNormals();return tumble(gg)};
+    const hw=cw/2-cb-.05;body.add(new THREE.Mesh(strip(P0,C0,P1,.15,.92,hw),carGlassM));body.add(new THREE.Mesh(strip(P2,C2,P3,.1,.9,hw),carGlassM));
+    // side windows: flat panes on the cabin flank, split by the B pillar
+    const pane=(pts,sd)=>{const sh=new THREE.Shape(pts.map(p=>new THREE.Vector2(p[0],p[1])));const sg=new THREE.ShapeGeometry(sh).toNonIndexed();const p=sg.attributes.position;
+      for(let i=0;i<p.count;i++){const zz=p.getX(i),yy=p.getY(i);p.setXYZ(i,sd*(cw/2+.006),yy,zz)}if(sd>0){const a=p.array;for(let i=0;i<a.length;i+=9)for(let k=0;k<3;k++){const t=a[i+3+k];a[i+3+k]=a[i+6+k];a[i+6+k]=t}}
+      sg.computeVertexNormals();return new THREE.Mesh(tumble(sg),carGlassM)};
+    const bp=(rf+wsB)/2-.35,b2=bp-.12;
+    const fw=[[wsB-.14,belt+.03],[wsB-.42,belt+.24],[rf-.02,rt-.1],[bp,rt-.1],[bp,belt+.03]];
+    const rw=o.wagon?[[b2,belt+.03],[b2,rt-.1],[rr+.12,rt-.12],[rb+.12,belt+.26],[rb+.14,belt+.03]]:[[b2,belt+.03],[b2,rt-.1],[rr+.1,rt-.12],[rr-.28,belt+.24],[rb+.3,belt+.03]];
+    [1,-1].forEach(sd=>{body.add(pane(fw,sd));body.add(pane(rw,sd))});
+    // lamps, grille, trim
+    const box=(w,h,d,m,x,y,z,ry)=>{const b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);b.position.set(x,y,z);if(ry)b.rotation.y=ry;body.add(b);return b};
+    [1,-1].forEach(sd=>{box(.46,.11,.12,headM3,sd*(W/2-.36),.66,F+.06,sd*-.22);box(.5,.16,.08,trimM,sd*(W/2-.37),.66,F+.03,sd*-.22);
+      box(.34,.13,.08,tailM2,sd*(W/2-.26),.8,B-.05,sd*.2);
+      box(.1,.1,.2,roofM,sd*(cw/2+.1),belt+.12,wsB-.18);box(.12,.03,.05,trimM,sd*(cw/2+.02),belt+.08,wsB-.18);
+      box(.04,.08,zf-zb-2*A-.1,trimM,sd*(bw/2-.01),sill+.03,(zf+zb)/2);
+      [bp+.38,b2-.05].forEach(z=>box(.03,.035,.17,chromeM,sd*(bw/2+.005),belt-.14,z-.3));
+      [zf-A-.05,bp-.06,zb+A+.05].forEach(z=>box(.012,.5,.012,trimM,sd*(bw/2+.003),.58,z));
+      const lin=new THREE.Mesh(new THREE.CylinderGeometry(A-.02,A-.02,bw-.3,14,1,true,0,Math.PI).rotateZ(Math.PI/2),trimM);[zf,zb].forEach(z=>{const l=lin.clone();l.position.set(0,rc,z);body.add(l)})});
+    box(W-.9,.05,.06,tailM2,0,.84,B-.06);
+    box(.88,.17,.06,trimM,0,.47,F+.1);box(W-.5,.11,.06,trimM,0,.34,F+.06);
+    box(W-.4,.13,.08,trimM,0,.35,B-.06);box(.52,.13,.02,plateM,0,.56,B-.1);
+    [1,-1].forEach(sd=>{const e=new THREE.Mesh(new THREE.CylinderGeometry(.05,.055,.16,10).rotateX(Math.PI/2),chromeM);e.position.set(sd*.46,.32,B-.1);body.add(e)});
+    bakeGroup(body);
+    const wheels=[];if(o.wheels){[[1,zf],[-1,zf],[1,zb],[-1,zb]].forEach(([sx,z])=>{const k=makeWheel(r,o.ww||.3,sx,false);k.w.position.set(sx*o.xw,r,z);g.add(k.w);wheels.push(k)})}
+    return {g,body,wheels,tail:tailM2,paint}}
   /* ---------- traffic: other cars actually driving the loop ---------- */
   const traffic=[];
   (function(){
-    const n=LOW?3:5,COLS=[0x2f4f9e,0xb8322f,0xd9d2c2,0x3f8a56,0x8a857b];
-    const bodyM=new THREE.MeshPhongMaterial({vertexColors:true,shininess:38,specular:0x2a2a2a});
-    const bodyIM=new THREE.InstancedMesh(new THREE.BoxGeometry(1.85,.62,4),bodyM,n);
-    const cabIM=new THREE.InstancedMesh(new THREE.BoxGeometry(1.6,.58,1.9),M(0x1b1a16,{roughness:.35,metalness:.35}),n);
-    const whIM=new THREE.InstancedMesh(new THREE.CylinderGeometry(.42,.42,.34,12),rubber,n*4);
-    const tlIM=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,.14,.06),M(0xff3b30,{emissive:0xff3b30,emissiveIntensity:.9}),n);
-    const hlIM=new THREE.InstancedMesh(new THREE.BoxGeometry(1.4,.16,.06),M(0xfff2c0,{emissive:0xfff2c0,emissiveIntensity:1.1}),n);
-    bodyIM.castShadow=!LOW;cabIM.castShadow=!LOW;
-    [bodyIM,cabIM,whIM,tlIM,hlIM].forEach(m=>{m.frustumCulled=false;S.add(m)});
+    const n=LOW?3:5,COLS=[0x1f3b73,0xb9bcbf,0x1b1b1d,0xe8e6e0,0x2e4a3a];
     for(let i=0;i<n;i++){
       const lane=(i%2?1:-1)*2.05;
       const bd=new CANNON.Body({mass:0,type:CANNON.Body.KINEMATIC,material:oM});
       bd.addShape(new CANNON.Box(new CANNON.Vec3(.95,.62,2.05)));world.addBody(bd);
-      traffic.push({u:(i+.35)/n,lane,base:6.5+((i*53)%10)/10*5.5,spd:0,bd});
-      bodyIM.setColorAt(i,new THREE.Color(COLS[i%COLS.length]))}
-    if(bodyIM.instanceColor)bodyIM.instanceColor.needsUpdate=true;
-    const o=new THREE.Object3D();
-    traffic.mesh={bodyIM,cabIM,whIM,tlIM,hlIM,o,n}})();
+      const c=buildCar({paint:COLS[i%COLS.length],r:.42,zf:1.3,zb:-1.3,F:2.05,B:-2.05,W:2,xw:.84,ww:.3,wagon:i%3===2,wheels:true});
+      c.g.rotation.order='YXZ';S.add(c.g);
+      traffic.push({u:(i+.35)/n,lane,base:6.5+((i*53)%10)/10*5.5,spd:0,bd,car:c,pv:0,dive:0,wa:0,py:null})}})();
   function updTraffic(dt,now){
-    const {bodyIM,cabIM,whIM,tlIM,hlIM,o}=traffic.mesh;
     for(let i=0;i<traffic.length;i++){const t=traffic[i];
       const {p,tg,n}=at(t.u);
       const x=p.x+n.x*t.lane,z=p.z+n.z*t.lane,y=p.y;
@@ -2147,21 +2228,19 @@ addEventListener('scroll',mcta,{passive:true});
       t.u=(t.u+(t.spd*dt)/TLEN)%1;
       const yaw=Math.atan2(tg.x,tg.z);
       const pitch=Math.atan2(hAt(t.u+.004)-hAt(t.u-.004),TLEN*.008);
-      o.rotation.order='YXZ';
-      o.position.set(x,y+.86,z);o.rotation.set(-pitch,yaw,0);o.scale.set(1,1,1);o.updateMatrix();bodyIM.setMatrixAt(i,o.matrix);
-      o.position.set(x,y+1.45,z-0);o.updateMatrix();cabIM.setMatrixAt(i,o.matrix);
-      o.position.set(x+tg.x*2.05,y+.72,z+tg.z*2.05);o.updateMatrix();hlIM.setMatrixAt(i,o.matrix);
-      o.position.set(x-tg.x*2.05,y+.78,z-tg.z*2.05);o.updateMatrix();tlIM.setMatrixAt(i,o.matrix);
-      const rot=now/1000*t.spd*2.2;
-      if(frameN%2===0)for(let w=0;w<4;w++){const fz=w<2?1.35:-1.35,sx=w%2?1:-1;
-        o.position.set(x+tg.x*fz+n.x*sx*.92,y+.42,z+tg.z*fz+n.z*sx*.92);
-        o.rotation.set(rot,yaw,Math.PI/2);o.updateMatrix();whIM.setMatrixAt(i*4+w,o.matrix)}
+      /* the body dives when they brake, the brake lights come on, wheels roll by distance and the fronts steer into the bend */
+      const G=t.car.g;G.position.set(x,y,z);G.rotation.set(-pitch,yaw,0);
+      const acc=(t.spd-t.pv)/Math.max(dt,.001);t.pv=t.spd;
+      t.dive+=(Math.max(-.03,Math.min(.03,acc*.012))-t.dive)*Math.min(1,dt*5);t.car.body.rotation.x=t.dive;
+      t.car.tail.emissiveIntensity=(acc<-.6||t.spd<.4)?1.9:.55;
+      let dy=t.py==null?0:yaw-t.py;if(dy>Math.PI)dy-=Math.PI*2;if(dy<-Math.PI)dy+=Math.PI*2;t.py=yaw;
+      const stA=Math.max(-.45,Math.min(.45,dy/Math.max(dt,.001)/Math.max(1,t.spd)*2.6));
+      t.wa+=t.spd*dt/.42;const W4=t.car.wheels;for(let w=0;w<4;w++){W4[w].spin.rotation.x=t.wa;if(w<2)W4[w].w.rotation.y+=(stA-W4[w].w.rotation.y)*Math.min(1,dt*6)}
       t.bd.position.set(x,y+.86,z);
       t.bd.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),yaw);
       t.bd.velocity.set(tg.x*t.spd,0,tg.z*t.spd);
       t.bd.aabbNeedsUpdate=true}
-    bodyIM.instanceMatrix.needsUpdate=true;cabIM.instanceMatrix.needsUpdate=true;if(frameN%2===0)whIM.instanceMatrix.needsUpdate=true;
-    tlIM.instanceMatrix.needsUpdate=true;hlIM.instanceMatrix.needsUpdate=true}
+  }
   /* ---------- animals: circling birds, grazing herds, ducks on the pond ---------- */
   function bird(){const g=new THREE.Group();const bm=new THREE.MeshBasicMaterial({color:0x232220,side:THREE.DoubleSide});
     const body=new THREE.Mesh(new THREE.ConeGeometry(.1,.46,6),bm);body.rotation.x=Math.PI/2;g.add(body);
@@ -2305,15 +2384,20 @@ addEventListener('scroll',mcta,{passive:true});
   skid.count=0;skid.frustumCulled=false;if(skid.instanceMatrix.setUsage)skid.instanceMatrix.setUsage(THREE.DynamicDrawUsage);S.add(skid);
   const add=(g,geo,m,x,y,z,sh=true)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=sh;g.add(o);return o};
   const headM=M(0xfff2c0,{emissive:0xfff2c0,emissiveIntensity:1.3}),tailM=M(0xff3b30,{emissive:0xff3b30,emissiveIntensity:.5});
-  {const g=vis.bodyIn;add(g,new THREE.BoxGeometry(2,.62,4),paper,0,.5,0);add(g,new THREE.BoxGeometry(1.9,.35,.6),paper,0,.6,2.1);add(g,new THREE.BoxGeometry(1.7,.62,2),ink,0,1.1,-.2);const ws=add(g,new THREE.BoxGeometry(1.55,.42,.08),M(0x9cc0ff,{roughness:.15,metalness:.5}),0,1.12,.84,false);ws.rotation.x=-.25;add(g,new THREE.BoxGeometry(.55,.64,4.04),red,0,.5,0,false);add(g,new THREE.BoxGeometry(2.1,.1,.5),ink,0,1.25,-2);[-.6,.6].forEach(x=>add(g,new THREE.BoxGeometry(.34,.2,.06),headM,x,.68,2.41,false));[-.7,.7].forEach(x=>add(g,new THREE.BoxGeometry(.34,.16,.06),tailM,x,.62,-2.03,false));add(g,new THREE.CylinderGeometry(.5,.5,.12,18),red,0,1.48,-.2)}
-  function wheelMesh(r,wd){const g=new THREE.Group();g.rotation.order='YXZ';const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,wd,18),rubber);t.rotation.z=Math.PI/2;t.castShadow=true;g.add(t);const rim=new THREE.Mesh(new THREE.CylinderGeometry(r*.58,r*.58,wd+.02,8),bone);rim.rotation.z=Math.PI/2;g.add(rim);return g}
-  const wv={car:[0,1,2,3].map(()=>wheelMesh(.46,.42))};wv.car.forEach(w=>vis.car.add(w));
+  const PCAR=buildCar({paint:0xa31c1c,roof:0x0f0f0f,r:VEHS.car.r,zf:VEHS.car.zf,zb:VEHS.car.zb,F:2.2,B:-2.2,W:2.24,head:headM,tail:tailM});
+  PCAR.g.position.y=.05-(VEHS.car.rest-.07)-VEHS.car.r;vis.bodyIn.add(PCAR.g);
+  const wv={car:[0,1,2,3].map(i=>makeWheel(VEHS.car.r,.42,i%2?-1:1,true))};wv.car.forEach(k=>vis.car.add(k.w));
+  /* real headlights once the light drops: one spot on the road ahead, no shadow */
+  let carHL=null;if(!LOW){carHL=new THREE.SpotLight(0xfff1d6,0,70,.52,.55,1.1);carHL.position.set(0,.1,2.3);carHL.target.position.set(0,-1.4,16);vis.car.add(carHL);vis.car.add(carHL.target)}
   const V=VEHS.car;
   function applyVehicle(){veh.wheelInfos.forEach((w,i)=>{const sx=i%2?-1:1;w.chassisConnectionPointLocal.set(sx*V.xw,.05,i<2?V.zf:V.zb);w.radius=V.r;w.suspensionRestLength=V.rest;w.frictionSlip=V.slip*wx.slip;w.rollInfluence=V.roll});chassisB.angularDamping=.4}
   function saveAll(){try{localStorage.setItem('sl_drive2',JSON.stringify({seen:[...seen]}))}catch(e){}}
   /* ---------- audio ---------- */
-  let AC=null,eng=null,engG=null;
-  function audioInit(){if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();eng=AC.createOscillator();eng.type='sawtooth';eng.frequency.value=55;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=320;engG=AC.createGain();engG.gain.value=0;eng.connect(f);f.connect(engG);engG.connect(AC.destination);eng.start()}catch(e){}}
+  let AC=null,eng=null,engG=null,eng2=null,engF=null,scrG=null;
+  function audioInit(){if(AC)return;try{AC=new (window.AudioContext||window.webkitAudioContext)();eng=AC.createOscillator();eng.type='sawtooth';eng.frequency.value=55;const f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=320;engG=AC.createGain();engG.gain.value=0;eng.connect(f);f.connect(engG);engG.connect(AC.destination);eng.start();engF=f;
+    eng2=AC.createOscillator();eng2.type='square';eng2.frequency.value=27;const g2=AC.createGain();g2.gain.value=.3;eng2.connect(g2);g2.connect(f);eng2.start();
+    const nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate),nd=nb.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1;
+    const ns=AC.createBufferSource();ns.buffer=nb;ns.loop=true;const bpf=AC.createBiquadFilter();bpf.type='bandpass';bpf.frequency.value=1500;bpf.Q.value=4;scrG=AC.createGain();scrG.gain.value=0;ns.connect(bpf);bpf.connect(scrG);scrG.connect(AC.destination);ns.start()}catch(e){}}
   function blip(freq=880,dur=.12,vol=.08){if(!AC||muted)return;try{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(vol,AC.currentTime);g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+dur);o.connect(g);g.connect(AC.destination);o.start();o.stop(AC.currentTime+dur)}catch(e){}}
   let hornOn=false;
   function honk(on){if(!AC||muted)return;try{
@@ -2489,7 +2573,7 @@ addEventListener('scroll',mcta,{passive:true});
   const vimg=$('#dvimg'),vtro=$('#dvtro'),vstat=$('#dvstat'),vnav=$('#dvp').parentElement;
   function renderViewer(s){vimg.hidden=true;vtro.hidden=true;vstat.hidden=true;vnav.style.visibility='hidden';
     if(s.pr&&!s.photo){vstat.hidden=false;vstat.innerHTML='<div class="mono">Personal record</div><b>'+s.pr+'</b><span class="mono">'+s.prName+'</span>';$('#dvt').textContent='Chapter '+s.chapter+' · '+s.name;$('#dvs').textContent=s.line+' '+s.line2;$('#dvn').textContent=''}
-    else if(s.kind==='trophy'){vtro.hidden=false;$('#dvt').textContent='Active performer';$('#dvs').textContent='Powerlifting championship · 230 kg, highest conventional deadlift at MUJ';$('#dvn').textContent=''}
+    else if(s.kind==='trophy'){vtro.hidden=false;$('#dvt').textContent='Active performer';$('#dvs').textContent='Powerlifting championship · 230 kg conventional deadlift';$('#dvn').textContent=''}
     else if(s.kind==='sign'){closeViewer();yourChapter();return}
     else{vi=photosOnly.indexOf(s);vimg.hidden=false;vimg.src=s.photo;$('#dvt').textContent=(s.pr?s.pr+' · ':'')+s.title;$('#dvs').textContent='Chapter '+s.chapter+' · '+s.name+' · '+s.sub;$('#dvn').textContent=(vi+1)+' / '+photosOnly.length;vnav.style.visibility='visible'}}
   function closeViewer(){viewer.classList.remove('on');driving=true}
@@ -2841,9 +2925,15 @@ addEventListener('scroll',mcta,{passive:true});
             lapStart=now;lapNo++;lapProg=0;lapVoid=false;offT=0;lapEl.classList.remove('void')}}
         if(frameN%4===0&&!lapArmed){lapT.textContent=fmtT(now-lapStart);lapN.textContent='Lap '+lapNo;
           for(let i=0;i<lapSecs.length;i++)lapSecs[i].classList.toggle('on',lapProg>(i+1)*.25-.25)}}
-      if(AC&&engG){const spq=isFinite(sp)?sp:0;engG.gain.setTargetAtTime(muted?0:.05+Math.min(.06,spq/300),AC.currentTime,.05);eng.frequency.setTargetAtTime(55+spq*9+(f?12:0),AC.currentTime,.08)}
+      if(AC&&engG){const spq=isFinite(sp)?sp:0,GB=[0,6.5,12,17.5,23,28.5,60];let gi=1;while(gi<GB.length-1&&spq>GB[gi])gi++;
+        /* five gears: revs climb through each one and drop on the shift, like a real box */
+        const fr=Math.min(1,(spq-GB[gi-1])/(GB[gi]-GB[gi-1])),rpm=(gi===1?.16:.4)+fr*.6+(f?.05:0),hz=36+rpm*96,T=AC.currentTime;
+        engG.gain.setTargetAtTime(muted?0:.04+Math.min(.07,rpm*.045+(f?.02:0)),T,.05);eng.frequency.setTargetAtTime(hz,T,.05);
+        if(eng2)eng2.frequency.setTargetAtTime(hz/2,T,.05);if(engF)engF.frequency.setTargetAtTime(240+rpm*540+(f?220:0),T,.08);
+        if(scrG){let sk=0;for(let i=0;i<4;i++){const w=veh.wheelInfos[i];if(w.isInContact)sk=Math.max(sk,1-(w.skidInfo==null?1:w.skidInfo))}if(key.h&&spq>5)sk=Math.max(sk,.7);
+          scrG.gain.setTargetAtTime(muted||spq<4||sub>.05?0:Math.min(.07,sk*.1),T,.06)}}
       honk(!!key.horn);
-    }else{if(AC&&engG)engG.gain.setTargetAtTime(0,AC.currentTime,.05);honk(false)}
+    }else{if(AC&&engG)engG.gain.setTargetAtTime(0,AC.currentTime,.05);if(scrG)scrG.gain.setTargetAtTime(0,AC.currentTime,.05);honk(false)}
     {const cp=chassisB.position,pp=PREV.p,dx=cp.x-pp.x,dy=cp.y-pp.y,dz=cp.z-pp.z;
      if(active&&driving&&PREV.ok&&dx*dx+dy*dy+dz*dz<36){const a=Math.min(1,physAcc/PSTEP);
        car.position.set(pp.x+dx*a,pp.y+dy*a,pp.z+dz*a);
@@ -2888,7 +2978,8 @@ addEventListener('scroll',mcta,{passive:true});
     waterNorm.offset.set(now/26000,now/17000);
     // wheels
     const wi=veh.wheelInfos,wl=wv.car;
-    wl.forEach((w,i)=>{const c=wi[i].chassisConnectionPointLocal;w.position.set(c.x,.05-wi[i].suspensionLength,c.z);w.rotation.set(wi[i].rotation,i<2?wi[i].steering:0,0)});
+    wl.forEach((k,i)=>{const c=wi[i].chassisConnectionPointLocal;k.w.position.set(c.x,.05-wi[i].suspensionLength,c.z);k.w.rotation.set(0,i<2?wi[i].steering:0,0);k.spin.rotation.x=wi[i].rotation});
+    if(frameN%10===0){const ni=Math.max(0,Math.min(1.8,(.85-sun.intensity)*3.2));if(carHL)carHL.intensity=ni;headM.emissiveIntensity=1+ni*.5;npcHeadM.emissiveIntensity=.9+ni*.6}
     if(active)for(let i=0;i<dyn.length;i++){const d=dyn[i];if(d.body.sleepState===2&&frameN%30)continue;d.mesh.position.copy(d.body.position);d.mesh.quaternion.copy(d.body.quaternion);if(d.body.position.y<-5){d.body.position.copy(d.home);d.body.quaternion.copy(d.q);d.body.velocity.setyou();d.body.angularVelocity.setyou()}}
     const tt=now/1000;if(active)anims.forEach(a=>{const dd=Math.hypot(a.g.pos.x-car.position.x,a.g.pos.z-car.position.z);if(dd<70)a.pose(a.F,tt*a.speed)});
     rings.forEach(q=>{if(q.g.visible){q.ring.rotation.z+=dt*1.5;q.ring2.rotation.z-=dt*2.1}});
@@ -3198,7 +3289,7 @@ addEventListener('scroll',mcta,{passive:true});
   const seg=(tt,a,b,va,vb)=>tt<=a?va:tt>=b?vb:va+(vb-va)*ease((tt-a)/(b-a));
   const GUIDE={
     top:{mode:'idle',hello:"Hey, I'm Swastik. Tap me any time.",tips:["This is swastikk.m: powerbuilding coaching. Strength and size, one plan.","Scroll down, or tap a stop below and I'll take you there."]},
-    load:{mode:'lift',hello:"That bar's loading to 230 kg. My deadlift.",tips:["Keep scrolling, the bar loads plate by plate up to 230 kg.","230 kg. Heaviest conventional deadlift at MUJ."]},
+    load:{mode:'lift',hello:"That bar's loading to 230 kg. My deadlift.",tips:["Keep scrolling, the bar loads plate by plate up to 230 kg.","230 kg. My heaviest conventional deadlift."]},
     drive:{mode:'point',hello:"Want the full story? Drive through it.",tips:["Hit Start engine. 13 chapters from 68 kg to 102 kg.","Thirteen chapters, in order, on boards you read from the driver's seat.","There's a hill that loads the deadlift as you climb, and a pond you can drive into."]},
     trans:{mode:'flex',hello:"68 kg on a plastic chair. Then 102.",tips:["Scroll and the photo wipes from before to after.","Same person. Only thing that changed: the plan, and actually sticking to it."]},
     work:{mode:'flex',hello:"Real training photos, no filter.",tips:["Deadlift, double biceps, triceps, curls. Swipe the strip on phone."]},
@@ -3579,7 +3670,7 @@ async function submit(){
   if(isBot()){return done(Object.fromEntries(STEPS.map(s=>[s.label,ser(s)])),true)}
   const vals=Object.fromEntries(STEPS.map(s=>[s.label,ser(s)]));
   const payload={key:SECRET_KEY,type:'application',submittedAt:new Date().toISOString(),
-    answers:STEPS.map(s=>({label:s.label,value:vals[s.label]})),...vals};
+    answers:STEPS.map(s=>({label:s.label,value:s.type==='tel'?String(vals[s.label]||'').replace(/^[\s=+@-]+/,''):vals[s.label]})),...vals};
   const r=await postLead(payload);
   if(r.ok){try{localStorage.removeItem('sl_app')}catch(e){}return done(vals,true)}
   // nothing reached the sheet, so keep it and hand it over on WhatsApp instead
