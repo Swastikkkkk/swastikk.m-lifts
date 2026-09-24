@@ -1121,6 +1121,9 @@ html.at-foot #guide canvas{pointer-events:none}
   .hero-in{padding-top:clamp(96px,13vh,124px);padding-bottom:max(clamp(36px,5vw,64px),100px)}
   .hero h1{font-size:clamp(56px,min(8.4vw,13vh),138px)}
   .hero h1 em{opacity:.9}
+  /* keep his whole head in frame on wide, short laptop screens */
+  .hero-ph{top:clamp(28px,6vh,64px);-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 70px);mask-image:linear-gradient(180deg,transparent 0,#000 70px)}
+  .hero-ph img{object-position:55% 0%;transform-origin:50% 0}
 }
 </style>
 
