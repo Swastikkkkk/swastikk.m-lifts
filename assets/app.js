@@ -13,7 +13,7 @@ const SL_CFG={
      is set, applications are saved on the visitor's device and handed off
      over WhatsApp instead, so nothing is lost — but nothing reaches your
      inbox automatically either. */
-  SCRIPT_URL:"https://script.google.com/macros/s/AKfycbyypKbENwgDzma3Cg6KFJ9v0vZ8eh-xOiNQSjmGlq-1SfJ1hyNpxtxFEY_9FqOJtAUk/exec",
+  SCRIPT_URL:"https://script.google.com/macros/s/AKfycbwzQj7jvxkgZ4wqC4fYJNolGjxlTEfYJhnBjCIv06mkjaRA2Fxyg45Lf1jGgs1vFZpE/exec",
   /* A shared password between this page and code.gs, so a stranger can't
      write junk rows into your sheet. Pre-filled here; code.gs carries the
      identical value — leave both as they are unless you regenerate one. */
@@ -23,7 +23,7 @@ const SL_CFG={
   /* Your inbox. Shown as a manual "email it instead" fallback on this page
      if the backend is unreachable, alongside the automatic email code.gs
      already sends on every successful submission. */
-  EMAIL:"",
+  EMAIL:"swastikdutt@gmail.com",
   PRICE:"\u20b9500"
 };
 window.SL_CFG=SL_CFG;
