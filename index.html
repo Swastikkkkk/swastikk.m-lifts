@@ -1116,6 +1116,12 @@ html.at-foot #guide canvas{pointer-events:none}
  html.driving #dmiss{left:150px;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
  html.driving #dstory{left:150px;bottom:calc(164px + env(safe-area-inset-bottom,0px))}}
 @media (max-width:900px){#guide{width:104px;height:140px;left:4px}#guide canvas{width:100px;height:128px}#bubble{left:70px;bottom:104px;max-width:min(230px,calc(100vw - 150px))}}
+/* desktop hero: size the headline by screen height too, so it never runs under the nav on a laptop */
+@media (min-width:901px){
+  .hero-in{padding-top:clamp(96px,13vh,124px);padding-bottom:max(clamp(36px,5vw,64px),100px)}
+  .hero h1{font-size:clamp(56px,min(8.4vw,13vh),138px)}
+  .hero h1 em{opacity:.9}
+}
 </style>
 
 </head>
