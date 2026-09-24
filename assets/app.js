@@ -24,7 +24,7 @@ const SL_CFG={
      if the backend is unreachable, alongside the automatic email code.gs
      already sends on every successful submission. */
   EMAIL:"",
-  PRICE:"\u20b91,980"
+  PRICE:"\u20b9500"
 };
 window.SL_CFG=SL_CFG;
 const SCRIPT_URL=SL_CFG.SCRIPT_URL,SECRET_KEY=SL_CFG.SECRET_KEY;
@@ -3081,7 +3081,7 @@ addEventListener('scroll',mcta,{passive:true});
     price:{mode:'point',hello:"₹66 a day. Less than your whey.",tips:["One plan: ₹1,980 a month, everything included.","In person at MUJ Jaipur, or online from anywhere."]},
     results:{mode:'flex',hello:"My numbers, not a pitch.",tips:["68 to 102 kg, 520 kg total across squat, bench and deadlift.","More on Instagram @swastikk.m."]},
     nope:{mode:'idle',hello:"Honest filter. Read it twice.",tips:["If you want abs in 21 days, this isn't it. If you'll show up three days a week, it is."]},
-    apply:{mode:'point',hello:"Two minutes, mostly taps.",tips:["18 quick questions. Sliders and taps, barely any typing.","Your answers save if you close the tab. I reply on WhatsApp."]},
+    apply:{mode:'point',hello:"Two minutes, mostly taps.",tips:["9 quick questions. Mostly taps.","Your answers save if you close the tab. I reply on WhatsApp."]},
     game:{mode:'point',hello:"Follow the arrow. Each billboard is a chapter.",tips:["Arrow above the car points to the next chapter. The beam of light marks it.","Stop near a billboard or a lifter and press E (or tap the prompt) to look closer.","The sky changes as the story does — you don't have to touch a thing.","The hill loads the deadlift as you climb. The pond is inside the loop, drive in and swim.","Lost? M opens the map. R puts you back on the road."]},
   };
   const STOPS=[['drive','Drive'],['trans','Proof'],['price','Price'],['apply','Apply']];
@@ -3249,27 +3249,18 @@ addEventListener('scroll',mcta,{passive:true});
 
 
 /* ===== FORM ===== */
-const SECTIONS=['Basics','Body & training','Lifestyle','You','Contact'];
+const SECTIONS=['Basics','Training','Schedule','Plan','Contact'];
 const ftin=cm=>{const t=cm/2.54;return `${Math.floor(t/12)} ft ${Math.round(t%12)} in`};
 const STEPS=[
  {s:0,label:'Full name',type:'text',ph:'Type your name',req:true,auto:'name'},
  {s:0,label:'Age',type:'slider',min:15,max:45,def:20,unit:'yrs',req:true},
- {s:0,label:'Gender',type:'choice',opts:['Male','Female','Prefer not to say'],req:true},
- {s:1,label:'Height (cm)',type:'slider',min:140,max:210,def:172,unit:'cm',sub:ftin,req:true},
  {s:1,label:'Current weight (kg)',type:'slider',min:35,max:150,def:68,unit:'kg',hint:'I started at 68. No judgement.',req:true},
  {s:1,label:'Training experience',type:'choice',opts:['Never trained','Under 6 months','6 months to 2 years','2+ years'],req:true},
- {s:1,label:'Current best lifts (squat / bench / deadlift)',type:'lifts',hint:"Rough numbers are fine. Never tested? Leave it on Don't know.",req:false},
  {s:1,label:'Main goal',type:'choice',opts:['Build muscle','Get stronger','Both','Lose fat, keep strength'],req:true},
- {s:1,label:'Any injuries or pain?',type:'multi',opts:['None','Lower back','Knees','Shoulders','Elbows / wrists','Hips','Neck','Other'],excl:'None',hint:'Tap all that apply.',req:true},
  {s:2,label:'Days per week you can train',type:'tiles',opts:['2-3','4','5','6'],unit:'days',req:true},
- {s:2,label:'Gym access',type:'choice',opts:['College gym','Commercial gym','Home setup','Nothing yet'],req:true},
- {s:2,label:'Diet',type:'choice',opts:['Vegetarian','Eggetarian','Non-vegetarian','Vegan'],req:true},
- {s:2,label:'Average sleep per night',type:'choice',opts:['Under 5 hours','5-6 hours','7-8 hours','8+ hours'],req:true},
- {s:3,label:'Why do you want coaching now?',type:'multi',opts:['Get bigger','Get stronger','Look better','Confidence','Stuck training alone','Sport performance','Health','Just starting out','Other'],hint:'Tap all that apply.',req:true},
- {s:3,label:'What has stopped you before?',type:'multi',opts:['No plan','Motivation','Time','Diet','Injury','Unsure about form','Nothing, just starting','Other'],hint:'Tap all that apply.',req:true},
- {s:3,label:'Ready to commit?',type:'choice',opts:["Yes, let's go",'Still figuring it out'],req:true},
+ {s:2,label:'Any injuries or pain?',type:'multi',opts:['None','Lower back','Knees','Shoulders','Other'],excl:'None',hint:'Tap all that apply.',req:true},
+ {s:3,label:'Plan',type:'choice',opts:['Online · ₹500/month','In person · ₹1,200/month','Not sure yet'],req:true},
  {s:4,label:'WhatsApp number',type:'tel',hint:"This is how I'll reach you. Nobody else sees it.",req:true},
- {s:4,label:'Instagram handle',type:'insta',req:false},
 ];
 let ST={},cur=0,rev=false,backToRev=false,started=false;
 try{const s=JSON.parse(localStorage.getItem('sl_app')||'null');if(s&&s.ST){ST=s.ST;cur=Math.min(+s.cur||0,STEPS.length-1)}}catch(e){}
@@ -3425,7 +3416,7 @@ function review(){
    2. if that fails, park it in localStorage and retry on the next visit
    3. either way, offer a pre-filled WhatsApp handoff so the lead lands today   */
 function leadSummary(vals){
-  const pick=['Full name','Age','Gender','Height (cm)','Current weight (kg)','Training experience',
+  const pick=['Full name','Age','Plan','Current weight (kg)','Training experience',
     'Current best lifts (squat / bench / deadlift)','Main goal','Days per week you can train','Gym access',
     'Any injuries or pain?','WhatsApp number','Instagram handle'];
   const lines=pick.filter(k=>vals[k]!==undefined&&vals[k]!=='').map(k=>k+': '+vals[k]);
