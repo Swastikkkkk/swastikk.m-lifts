@@ -42,7 +42,7 @@
   "description": "Powerbuilding coaching. Strength and size on one plan, in person in Jaipur or online anywhere.",
   "url": "https://swastikk-m.vercel.app/",
   "image": "https://swastikk-m.vercel.app/assets/og.jpg",
-        "priceRange": "₹500-₹1,200/month",
+        "priceRange": "₹699-₹2,499/month",
 "areaServed": [
     { "@type": "City", "name": "Jaipur" },
     { "@type": "Country", "name": "India" }
@@ -62,7 +62,7 @@
   "makesOffer": {
     "@type": "Offer",
     "name": "Powerbuilding coaching",
-    "price": "500",
+    "price": "699",
     "priceCurrency": "INR",
     "description": "Programme built for you, form checks on video, food that fits, weekly check-ins, WhatsApp access."
   }
@@ -1057,6 +1057,65 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
    grids stayed side by side and the display type overflowed. This collapses
    every grid to one column, pulls the headline scale down, and guarantees the
    page can never scroll sideways. */
+
+/* ===== nav: brand and tag side by side ===== */
+.nav-l{display:flex;align-items:center;gap:clamp(10px,1vw,16px);min-width:0}
+.nav-tag{font-family:var(--sans);font-size:clamp(11px,.9vw,13px);font-weight:600;letter-spacing:.08em;text-transform:uppercase;opacity:.62;line-height:1;white-space:nowrap;padding-left:clamp(10px,1vw,16px);border-left:1px solid currentColor}
+@media (max-width:600px){.nav-tag .nt-x{display:none}.nav-tag{font-size:10.5px;letter-spacing:.06em}}
+@media (max-width:350px){.nav-tag{display:none}}
+.t-ft{flex-wrap:wrap;gap:4px 14px}
+/* ===== three packages ===== */
+.p3-sub{max-width:62ch;margin:0 0 clamp(30px,4vw,48px)}
+.price.p3{grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(16px,1.6vw,26px);align-items:stretch}
+.price.p3 .plan{position:relative;display:flex;flex-direction:column;border:1px solid var(--pline);border-radius:24px;padding:clamp(24px,2.3vw,38px);background:rgba(255,255,255,.35)}
+.price.p3 .plan+.plan{border-top:1px solid var(--pline);padding-top:clamp(24px,2.3vw,38px)}
+.price.p3 .plan.pop{background:var(--ink);color:var(--paper);border-color:var(--ink);box-shadow:0 30px 60px -30px rgba(6,7,11,.55)}
+.p3 .badge{position:absolute;top:clamp(22px,2.2vw,34px);right:clamp(22px,2.2vw,34px);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;padding:7px 11px;border-radius:999px;background:var(--paper);color:var(--ink);line-height:1}
+.p3 .pt{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--mute2)}
+.p3 .pop .pt{color:var(--bone)}
+.p3 .pn{font-family:var(--serif);font-weight:600;font-size:clamp(26px,2.1vw,34px);line-height:1;letter-spacing:-.022em;margin:12px 0 22px}
+.price.p3 .plan .amt{font-size:clamp(54px,4.9vw,92px);line-height:.9;white-space:nowrap}
+.price.p3 .plan .amt i{font-size:.24em;margin-left:.1em;letter-spacing:0}
+.p3 .pop .amt i{color:var(--bone)}
+.p3 .bf{margin:22px 0 0;font-size:15.5px;line-height:1.45;font-weight:500}
+.p3 .bf b{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:500;color:var(--mute2);margin-bottom:6px}
+.p3 .pop .bf b{color:var(--bone)}
+.p3 .pd{margin:12px 0 0;color:var(--mute2);font-size:14.5px;line-height:1.6}
+.p3 .pop .pd{color:var(--bone)}
+.p3 .feat{list-style:none;margin:24px 0 0;padding:20px 0 0;border-top:1px solid var(--pline);display:grid;gap:13px}
+.p3 .pop .feat{border-color:rgba(242,238,230,.16)}
+.p3 .feat li{position:relative;padding-left:26px;font-size:15px;line-height:1.45}
+.p3 .feat li::before{content:"";position:absolute;left:4px;top:.28em;width:5px;height:10px;border:solid currentColor;border-width:0 1.8px 1.8px 0;transform:rotate(45deg);opacity:.8}
+.price.p3 .ctas{margin-top:auto;padding-top:28px;align-items:center}
+.p3 .pop .lnk{border-color:rgba(242,238,230,.5)}
+.p3 .plan:not(.pop) .lnk{border-color:var(--ink)}
+@media (max-width:1099px){.price.p3{grid-template-columns:minmax(0,640px)}.price.p3 .plan .amt{font-size:clamp(56px,13vw,92px)}}
+/* ===== phones: the story as a read, not a drive ===== */
+#mstory{background:var(--ink2);color:var(--paper);padding-block:clamp(64px,14vw,96px);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+#mstory .ms-k{color:var(--bone);margin-bottom:14px}
+#mstory .ms-h{font-family:var(--serif);font-weight:600;font-size:clamp(40px,11vw,64px);line-height:1;letter-spacing:-.03em;margin:0 0 16px}
+#mstory .ms-p{color:var(--bone);font-size:17px;line-height:1.55;margin:0 0 28px;max-width:34ch}
+.rd-cta{margin-top:28px}
+body>#dread{z-index:200;background:var(--ink)}
+
+/* ===== spacing pass ===== */
+.tst{gap:clamp(12px,1.4vw,20px);background:none;border:0}
+.tst div{display:flex;flex-direction:column;border:1px solid var(--line)}
+.tst b{font-size:clamp(34px,3.4vw,54px);line-height:1.02;text-wrap:balance}
+.tst q{flex:1}
+.tst span{margin-top:auto;padding-top:6px}
+.dover>div .btn{margin:6px}
+.dover>div{position:relative}
+.dover>div::before{content:"";position:absolute;inset:-60px -80px;z-index:-1;background:radial-gradient(closest-side,rgba(7,8,11,.72),rgba(7,8,11,0));pointer-events:none}
+.steps-in .r{min-width:34px}
+.wa,#guide{transition:opacity .35s,transform .25s}
+html.at-foot .wa,html.at-foot #guide{opacity:0!important;pointer-events:none}
+html.at-foot #guide canvas{pointer-events:none}
+@media (hover:hover) and (min-width:901px){
+ html.driving #drive .dbl{left:150px}
+ html.driving #dmiss{left:150px;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
+ html.driving #dstory{left:150px;bottom:calc(164px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:900px){#guide{width:104px;height:140px;left:4px}#guide canvas{width:100px;height:128px}#bubble{left:70px;bottom:104px;max-width:min(230px,calc(100vw - 150px))}}
 </style>
 
 </head>
@@ -1085,7 +1144,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 
 <div id="sprog" aria-hidden="true"></div>
 <header class="nav">
-  <a href="#top" class="brand" data-scroll>swastikk<i>.m</i></a>
+  <div class="nav-l"><a href="#top" class="brand" data-scroll>swastikk<i>.m</i></a><span class="nav-tag">Powerbuilding<span class="nt-x"> coaching</span></span></div>
   <a href="#apply" class="mono" data-scroll>Apply · 2 min</a>
 </header>
 
@@ -1099,7 +1158,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
       <p>68kg to 102kg, no shortcuts. 230kg deadlift, heaviest at MUJ. In person in Jaipur, online anywhere.</p>
       <div class="ctas">
         <a href="#apply" class="btn" data-scroll><span>Apply</span><span class="ar">→</span></a>
-        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching%20(%E2%82%B91%2C200%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" class="btn line" target="_blank" rel="noopener"><span>WhatsApp</span><span class="ar">→</span></a>
+        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching.%20How%20do%20I%20start%20the%20trial%3F" class="btn line" target="_blank" rel="noopener"><span>WhatsApp</span><span class="ar">→</span></a>
       </div>
     </div>
     <div class="teaser" id="teaser">
@@ -1111,7 +1170,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
         <button type="button" data-goal="Both"><i>03</i><span>Both</span></button>
         <button type="button" data-goal="Lose fat, keep strength"><i>04</i><span>Lose fat, keep strength</span></button>
       </div>
-      <div class="t-ft"><span>&#8377;500–&#8377;1,200<em> / month</em></span><span>Applications open</span></div>
+      <div class="t-ft"><span>Starting from as low as &#8377;699 per month.</span><span>Applications open</span></div>
     </div>
   </div>
 </section>
@@ -1161,7 +1220,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
   <div id="dfin"><div class="fin-in">
     <div class="mono" style="color:var(--bone)">Chapter 13 · Your chapter</div>
     <h3>68 became 102.<br><em>You're up next.</em></h3>
-    <p>He figured it out alone, the slow way. You don't have to. Program, form checks, food, weekly check-ins — all for ₹66 a day.</p>
+    <p>He figured it out alone, the slow way. You don't have to. Program, form checks, food, weekly check-ins — from ₹699 a month.</p>
     <div class="fin-cta"><button id="dfintrial" class="btn"><span>Sign up for the trial</span><span class="ar">→</span></button><button id="dfinwa" class="btn line"><span>Message on WhatsApp</span></button></div>
     <button id="dfinkeep" class="mono fin-keep">Keep driving</button>
   </div></div>
@@ -1271,41 +1330,62 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 
 <!-- PRICE -->
 <section class="sec paper gut" id="price">
-  <div class="chap mono"><span>III · The price</span></div>
-  <h2 class="h2" style="margin-bottom:clamp(26px,4vw,44px)">Two ways in.</h2>
-     <p class="per" style="margin-top:-18px;margin-bottom:clamp(26px,4vw,44px)">Skip a night out or a food-delivery order this month — put it here instead.</p>
-  <div class="price">
-    <div class="plan">
-      <div class="chap mono" style="margin-bottom:14px"><span>Online · anywhere</span></div>
-      <div class="amt">₹500<i>a month</i></div>
-      <p class="per">Full coaching over video and WhatsApp. No upsell at the end.</p>
-      <ul class="inc">
-        <li>Your own program<span>rewritten every block</span></li>
-        <li>Form checks<span>send as many as you want</span></li>
-        <li>Food plan<span>built on what you already eat</span></li>
-        <li>Weekly check-in<span>every single week</span></li>
-        <li>WhatsApp<span>straight to me</span></li>
+  <div class="chap mono"><span>III · The price · Online coaching</span></div>
+  <h2 class="h2" style="margin-bottom:clamp(14px,2vw,20px)">Three ways in.</h2>
+  <p class="per p3-sub">Three levels of personalization. Pick the one that matches where you're at. Skip a night out or a food-delivery order this month and put it here instead.</p>
+  <div class="price p3">
+    <article class="plan">
+      <div class="pt mono">Tier 01</div>
+      <h3 class="pn">Foundation</h3>
+      <div class="amt">₹699<i> / month</i></div>
+      <p class="bf"><b>Best for</b>Students who want real coaching without the real price tag.</p>
+      <p class="pd">Not everyone can drop big money on a coach and a diet plan every month, and you shouldn't have to, to train and eat right. The no-fluff essentials: a real plan, built for you, with enough check-ins to keep you moving in the right direction.</p>
+      <ul class="feat">
+          <li>Personalized diet plan built around your body weight, height and goals</li>
+          <li>A structured workout plan built around your needs and schedule</li>
+          <li>One 15-minute check-in call every 2 weeks to adjust diet and training as you progress</li>
       </ul>
       <div class="ctas">
         <a href="#apply" class="btn ink" data-scroll><span>Apply</span><span class="ar">→</span></a>
-        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20ONLINE%20powerbuilding%20coaching%20(%E2%82%B9500%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" class="lnk" style="border-color:var(--ink)" target="_blank" rel="noopener">Ask on WhatsApp</a>
+        <a href="https://wa.me/917384221979?text=Hi%20Swastik%21%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20the%20Foundation%20plan%20%28%E2%82%B9699%2Fmonth%29.%20How%20do%20I%20start%3F" class="lnk" target="_blank" rel="noopener">Ask on WhatsApp</a>
       </div>
-    </div>
-    <div class="plan">
-      <div class="chap mono" style="margin-bottom:14px"><span>In person · MUJ, Jaipur</span></div>
-      <div class="amt">₹1,200<i>a month</i></div>
-      <p class="per">Everything in Online, plus hands-on sessions together.</p>
-      <ul class="inc">
-        <li>Everything in Online<span>program, checks, food, check-ins</span></li>
-        <li>In-person sessions<span>live coaching at the gym</span></li>
-        <li>Hands-on cues<span>technique fixed in real time</span></li>
-        <li>Spotting<span>push heavier, safely</span></li>
+    </article>
+    <article class="plan pop">
+      <span class="badge mono">Most popular</span>
+      <div class="pt mono">Tier 02</div>
+      <h3 class="pn">Momentum</h3>
+      <div class="amt">₹1,499<i> / month</i></div>
+      <p class="bf"><b>Best for</b>Lifters who want faster progress and closer attention.</p>
+      <p class="pd">Everything in Foundation, dialed in weekly instead of biweekly. Your body doesn't wait two weeks to change, so your plan shouldn't either. More frequent adjustments mean faster, sharper progress.</p>
+      <ul class="feat">
+          <li>Everything in Foundation</li>
+          <li>Weekly 30-minute call for closer tracking and faster adjustments</li>
+          <li>More frequent personalization for faster progress</li>
+          <li>Basic supplementation stack guidance: what to take, when, and why</li>
+      </ul>
+      <div class="ctas">
+        <a href="#apply" class="btn" data-scroll><span>Apply</span><span class="ar">→</span></a>
+        <a href="https://wa.me/917384221979?text=Hi%20Swastik%21%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20the%20Momentum%20plan%20%28%E2%82%B91%2C499%2Fmonth%29.%20How%20do%20I%20start%3F" class="lnk" target="_blank" rel="noopener">Ask on WhatsApp</a>
+      </div>
+    </article>
+    <article class="plan">
+      <div class="pt mono">Tier 03</div>
+      <h3 class="pn">Apex</h3>
+      <div class="amt">₹2,499<i> / month</i></div>
+      <p class="bf"><b>Best for</b>Lifters who want a coach in their corner, every single day.</p>
+      <p class="pd">Full-access coaching built around your actual day-to-day life, not a template that gets tweaked every few weeks. If something changes, your plan changes with it, the same day.</p>
+      <ul class="feat">
+          <li>Everything in Momentum</li>
+          <li>Fully personalized adjustments based on your day-to-day life, not fixed check-in windows</li>
+          <li>24/7 guidance, with instant changes whenever something comes up</li>
+          <li>Direct video calls for real-time form checks and corrections</li>
+          <li>In-person coaching when available, for hands-on help</li>
       </ul>
       <div class="ctas">
         <a href="#apply" class="btn ink" data-scroll><span>Apply</span><span class="ar">→</span></a>
-        <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20IN-PERSON%20powerbuilding%20coaching%20(%E2%82%B91%2C200%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" class="lnk" style="border-color:var(--ink)" target="_blank" rel="noopener">Ask on WhatsApp</a>
+        <a href="https://wa.me/917384221979?text=Hi%20Swastik%21%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20the%20Apex%20plan%20%28%E2%82%B92%2C499%2Fmonth%29.%20How%20do%20I%20start%3F" class="lnk" target="_blank" rel="noopener">Ask on WhatsApp</a>
       </div>
-    </div>
+    </article>
   </div>
 </section>
 <!-- RESULTS -->
@@ -1373,10 +1453,10 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
     <a href="#apply" class="btn" data-scroll><span>Apply now</span><span class="ar">→</span></a>
   </div>
   <div class="foot-word" aria-hidden="true">Swastik</div>
-  <div class="foot-bar gut foot-serif"><span>swastikk.m · Powerbuilding coaching</span><span><a href="https://instagram.com/swastikk.m" target="_blank" rel="noopener">Instagram</a> · <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching%20(%E2%82%B91%2C200%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" target="_blank" rel="noopener">WhatsApp</a></span></div>
+  <div class="foot-bar gut foot-serif"><span>swastikk.m · Powerbuilding coaching</span><span><a href="https://instagram.com/swastikk.m" target="_blank" rel="noopener">Instagram</a> · <a href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching.%20How%20do%20I%20start%20the%20trial%3F" target="_blank" rel="noopener">WhatsApp</a></span></div>
 </footer>
 
-<a class="wa" href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching%20(%E2%82%B91%2C200%2Fmonth).%20How%20do%20I%20start%20the%20trial%3F" target="_blank" rel="noopener" aria-label="Message Swastik on WhatsApp"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#25D366" d="M16 3C8.8 3 3 8.8 3 16c0 2.3.6 4.5 1.7 6.4L3 29l6.8-1.8c1.9 1 4 1.6 6.2 1.6 7.2 0 13-5.8 13-13S23.2 3 16 3z"/><path fill="#fff" d="M12.1 9.7c-.3-.6-.6-.6-.9-.6h-.8c-.3 0-.7.1-1.1.5-.4.4-1.4 1.4-1.4 3.4s1.5 3.9 1.7 4.2c.2.3 2.9 4.6 7.1 6.3 3.5 1.4 4.2 1.1 5 1 .8-.1 2.4-1 2.8-2 .3-1 .3-1.8.2-2-.1-.2-.4-.3-.8-.5s-2.4-1.2-2.8-1.3c-.4-.1-.6-.2-.9.2-.3.4-1 1.3-1.3 1.6-.2.3-.5.3-.9.1-.4-.2-1.7-.6-3.3-2-1.2-1.1-2-2.4-2.3-2.8-.2-.4 0-.6.2-.8l.6-.7c.2-.2.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-.9-2.2-1.2-3z"/></svg><span class="pl">WhatsApp</span></a>
+<a class="wa" href="https://wa.me/917384221979?text=Hi%20Swastik!%20I%20saw%20the%20swastikk.m%20site%20and%20want%20to%20join%20your%20powerbuilding%20coaching.%20How%20do%20I%20start%20the%20trial%3F" target="_blank" rel="noopener" aria-label="Message Swastik on WhatsApp"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#25D366" d="M16 3C8.8 3 3 8.8 3 16c0 2.3.6 4.5 1.7 6.4L3 29l6.8-1.8c1.9 1 4 1.6 6.2 1.6 7.2 0 13-5.8 13-13S23.2 3 16 3z"/><path fill="#fff" d="M12.1 9.7c-.3-.6-.6-.6-.9-.6h-.8c-.3 0-.7.1-1.1.5-.4.4-1.4 1.4-1.4 3.4s1.5 3.9 1.7 4.2c.2.3 2.9 4.6 7.1 6.3 3.5 1.4 4.2 1.1 5 1 .8-.1 2.4-1 2.8-2 .3-1 .3-1.8.2-2-.1-.2-.4-.3-.8-.5s-2.4-1.2-2.8-1.3c-.4-.1-.6-.2-.9.2-.3.4-1 1.3-1.3 1.6-.2.3-.5.3-.9.1-.4-.2-1.7-.6-3.3-2-1.2-1.1-2-2.4-2.3-2.8-.2-.4 0-.6.2-.8l.6-.7c.2-.2.3-.4.4-.7.1-.3.1-.5 0-.7-.1-.2-.9-2.2-1.2-3z"/></svg><span class="pl">WhatsApp</span></a>
 <div id="guide" aria-hidden="true"><canvas id="gc"></canvas><div id="bubble"></div></div>
 <div class="m-cta" id="mcta" hidden><a href="#apply" class="btn" data-scroll><span>Apply · 2 min</span><span class="ar">→</span></a></div>
 
