@@ -24,7 +24,7 @@ const SL_CFG={
      if the backend is unreachable, alongside the automatic email code.gs
      already sends on every successful submission. */
   EMAIL:"swastikdutt@gmail.com",
-  PRICE:"\u20b9500"
+  PRICE:"\u20b9699"
 };
 window.SL_CFG=SL_CFG;
 const SCRIPT_URL=SL_CFG.SCRIPT_URL,SECRET_KEY=SL_CFG.SECRET_KEY;
@@ -883,15 +883,15 @@ addEventListener('scroll',mcta,{passive:true});
 
 /* ===== DRIVE: story world with physics (three.js + cannon.js) ===== */
 (function(){
-  if(!window.THREE||!window.CANNON)return;
-  if(matchMedia('(max-width:900px)').matches||matchMedia('(pointer:coarse)').matches){const d=document.getElementById('drive');if(d)d.remove();return}
+  const MOB=matchMedia('(max-width:900px)').matches||matchMedia('(pointer:coarse)').matches;
+  if(!MOB&&(!window.THREE||!window.CANNON))return;
   const PH={before:$('#bImg').src,flex:$('#aImg').src,dead:$('#heroImg').src,mirror:$('#fImg').src,lock:$('#gLock').src,dbb:$('#gDbb').src,tri:$('#gTri').src,curl:$('#gCurl').src,crowd:$('#gCrowd').src};
   const GP=i=>{const e=$('#gp'+i);return e?e.src:''};
   /* Every photograph in the story bible belongs to a checkpoint, so none of them are
      scattered round the map as decoration any more — they are installed at the chapter
      they were taken for, in the order the bible puts them in. */
   const EXTRAS=[];
-  const WA_TXT=encodeURIComponent("Hi Swastik! I just drove through your story on the swastikk.m site. I want to join the powerbuilding coaching (₹1,980/month). How do I start the trial?");
+  const WA_TXT=encodeURIComponent("Hi Swastik! I just drove through your story on the swastikk.m site. I want to join the powerbuilding coaching. How do I start?");
   /* ----------------------------------------------------------------------------
      THE STORY. Sourced verbatim from "TRACK STORY BIBLE — 68 -> 102": thirteen
      checkpoints, in the bible's order, with the bible's hook lines, numbers and
@@ -1006,6 +1006,29 @@ addEventListener('scroll',mcta,{passive:true});
      line2:'The finish line is the start line. Chapter 01 is waiting.',
      photos:[]},
   ];
+  /* Phones get the story as a read, not a drive: the game is desktop only. */
+  if(MOB){
+    const d=$('#drive'),rd=$('#dread'),list=$('#dreadlist');if(!d||!rd||!list){if(d)d.remove();return}
+    const s=document.createElement('section');s.id='mstory';s.className='gut';
+    s.innerHTML='<div class="mono ms-k">Thirteen chapters \u00b7 68 kg to 102</div><h2 class="ms-h">Read the story.</h2>'+
+      '<p class="ms-p">The skinny kid, and what happened next. Thirteen short chapters, about two minutes to read.</p>'+
+      '<button class="btn" id="mread" type="button"><span>Read the story</span><span class="ar">\u2192</span></button>';
+    d.parentNode.insertBefore(s,d);document.body.appendChild(rd);d.remove();
+    let built=false;
+    const build=()=>{if(built)return;built=true;
+      list.innerHTML=JOURNEY.map(c=>{const q=(c.line||c.hook||'').replace(/^"|"$/g,'');const body=c.line2||c.stat||'';
+        const ph=(c.photos&&c.photos[0]&&c.photos[0].src)||'';
+        return '<li><div class="rc">Chapter '+c.chapter+' \u00b7 '+c.name+'</div>'+(q?'<p class="rq">'+q+'</p>':'')+(body?'<p class="rb">'+body+'</p>':'')+(ph?'<img loading="lazy" alt="" src="'+ph+'">':'')+'</li>'}).join('');
+      const c=document.createElement('div');c.className='rd-cta';
+      c.innerHTML='<a href="#apply" class="btn" id="mapply"><span>Start your chapter</span><span class="ar">\u2192</span></a>';
+      list.after(c);
+      $('#mapply').onclick=e=>{e.preventDefault();close();const t=$('#apply');if(t)t.scrollIntoView({behavior:'smooth'})}};
+    const open=()=>{build();rd.classList.add('on');rd.scrollTop=0;document.documentElement.style.overflow='hidden';document.body.style.overflow='hidden'};
+    const close=()=>{rd.classList.remove('on');document.documentElement.style.overflow='';document.body.style.overflow=''};
+    $('#mread').onclick=open;$('#dreadx').onclick=close;
+    addEventListener('keydown',e=>{if(e.code==='Escape'&&rd.classList.contains('on'))close()});
+    return;
+  }
   const VEHS={
     car:{label:'Car',engine:650,max:30.8,slip:2.4,xw:1.05,zf:1.35,zb:-1.35,r:.46,rest:.42,steer:.55,roll:.02},
   };
@@ -1027,7 +1050,7 @@ addEventListener('scroll',mcta,{passive:true});
   const SAVE=(()=>{try{return JSON.parse(localStorage.getItem('sl_drive2')||'{}')}catch(e){return{}}})();
   const LOW=!matchMedia('(hover:hover)').matches;const TOUCH=matchMedia('(pointer:coarse)').matches||LOW;
   /* ---------- renderer / scene ---------- */
-  const R=new THREE.WebGLRenderer({canvas:cv,antialias:false,powerPreference:'high-performance'});
+  const R=new THREE.WebGLRenderer({canvas:cv,antialias:!LOW,powerPreference:'high-performance'});
   R.shadowMap.enabled=!LOW;R.shadowMap.type=THREE.PCFSoftShadowMap;
   /* One quality: Ultra, and it is not a menu. Everything the old tiers used to switch off
      is simply on — shadows, grass, dust, stars, the full particle budget. The only thing
@@ -1036,7 +1059,7 @@ addEventListener('scroll',mcta,{passive:true});
      render nine times the pixels for a picture the same size. Everything else is kept
      cheap by construction (Lambert materials, instanced scatter, a shadow map redrawn
      every third frame, boards culled by distance) rather than by asking the player. */
-  const ULTRA={dpr:1.3,dprLow:1.15,shEvery:3};
+  const ULTRA={dpr:1.3,dprLow:1.15,shEvery:2};
   /* Quality used to be decided once, from a coarse touch/mouse guess, and never
      revisited — so a weak laptop with a mouse got full shadows and 1.3 DPR for
      the entire drive regardless of actual frame rate. This instead watches the
@@ -1051,7 +1074,7 @@ addEventListener('scroll',mcta,{passive:true});
   function tierCfg(t){
     return t===2?{dpr:.75,shadow:false,shEvery:6}
          : t===1?{dpr:LOW?1.0:1.05,shadow:!LOW,shEvery:5}
-         :        {dpr:ULTRA.dpr,shadow:true,shEvery:ULTRA.shEvery};
+         :        {dpr:ULTRA.dpr,shadow:true,shEvery:2};
   }
   function setTier(t){
     if(t===qTier)return;qTier=t;const c=tierCfg(t);
@@ -1085,7 +1108,7 @@ addEventListener('scroll',mcta,{passive:true});
   let ZN={drag:0,fog:1,tint:[1,1,1]},fogFar0=170,fogNear0=55,hemi0=.55,sunI0=1.05;
   let progU=0;
   const hemi=new THREE.HemisphereLight(0xdfeaff,0x3c3a30,.55);S.add(hemi);
-  const sun=new THREE.DirectionalLight(0xfff2dd,1.05);sun.position.set(18,34,12);sun.castShadow=!LOW;sun.shadow.mapSize.set(LOW?512:640,LOW?512:640);sun.shadow.autoUpdate=false;sun.shadow.bias=-.0006;Object.assign(sun.shadow.camera,{left:-30,right:30,top:30,bottom:-30,near:1,far:110});S.add(sun);S.add(sun.target);
+  const sun=new THREE.DirectionalLight(0xfff2dd,1.05);sun.position.set(18,34,12);sun.castShadow=!LOW;sun.shadow.mapSize.set(LOW?512:1024,LOW?512:1024);sun.shadow.autoUpdate=false;sun.shadow.bias=-.0006;Object.assign(sun.shadow.camera,{left:-30,right:30,top:30,bottom:-30,near:1,far:110});S.add(sun);S.add(sun.target);
   const SUN_DIR=new THREE.Vector3(18,34,12).normalize();
   const MOON_DIR=new THREE.Vector3(-20,26,-14).normalize(); // rides opposite the sun
   const SUN_OFF_DEFAULT=new THREE.Vector3(18,34,12);
@@ -1187,7 +1210,7 @@ addEventListener('scroll',mcta,{passive:true});
   const world=new CANNON.World();world.gravity.set(0,-24,0);world.broadphase=new CANNON.SAPBroadphase(world);world.allowSleep=true;world.defaultContactMaterial.friction=.3;
   const gM=new CANNON.Material('g'),oM=new CANNON.Material('o');world.addContactMaterial(new CANNON.ContactMaterial(gM,oM,{friction:.5,restitution:.1}));
   // no infinite ground plane: the world heightfield below is the only ground, which is what lets the pond have a real bed
-  const BOUND=192;[[BOUND,0,0,.5,8,BOUND],[-BOUND,0,0,.5,8,BOUND],[0,0,BOUND,BOUND,8,.5],[0,0,-BOUND,BOUND,8,.5]].forEach(([x,y,z,a,b,c])=>{const w=new CANNON.Body({mass:0});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);world.addBody(w)});
+  const MK=1.45;const BOUND=Math.round(192*MK);[[BOUND,0,0,.5,8,BOUND],[-BOUND,0,0,.5,8,BOUND],[0,0,BOUND,BOUND,8,.5],[0,0,-BOUND,BOUND,8,.5]].forEach(([x,y,z,a,b,c])=>{const w=new CANNON.Body({mass:0});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);world.addBody(w)});
   /* Heightfield half-extent and grid spacing, declared early because the branch and
      summit road below need them. The terrain is one mesh that is never frustum culled,
      so its vertex count is paid on every single frame: at ES=2 a world this size is
@@ -1195,14 +1218,14 @@ addEventListener('scroll',mcta,{passive:true});
      far cheaper than shrinking the world, and the roads survive it because their
      corridor is flattened ten metres wide either side and the tarmac is drawn from
      this same field, so the road can never disagree with the ground it sits on. */
-  const WS=205,ES=LOW?3:2.5;
+  const WS=Math.round(205*MK),ES=LOW?3.6:3;
   const dyn=[];
   function staticBox(x,y,z,a,b,c,ry=0){const w=new CANNON.Body({mass:0,material:oM});w.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));w.position.set(x,y,z);w.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);world.addBody(w);return w}
   function dynBox(mesh,x,y,z,a,b,c,mass,ry=0){const bd=new CANNON.Body({mass,material:oM});bd.addShape(new CANNON.Box(new CANNON.Vec3(a,b,c)));bd.position.set(x,y,z);bd.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),ry);bd.angularDamping=.5;bd.linearDamping=.2;bd.sleepSpeedLimit=.3;world.addBody(bd);mesh.position.set(x,y,z);mesh.rotation.y=ry;S.add(mesh);dyn.push({mesh,body:bd,home:new CANNON.Vec3(x,y,z),q:bd.quaternion.clone()});return bd}
   /* ---------- road spline ---------- */
-  const PTS=[[0,-38],[38,-70],[83,-54],[99,-10],[80,35],[35,58],[-22,51],[-64,26],[-77,-22],[-48,-51]].map(([x,z])=>new THREE.Vector3(x,0,z));
+  const PTS=[[0,-38],[38,-70],[83,-54],[99,-10],[80,35],[35,58],[-22,51],[-64,26],[-77,-22],[-48,-51]].map(([x,z])=>new THREE.Vector3(x*MK,0,z*MK));
   const curve=new THREE.CatmullRomCurve3(PTS,true,'catmullrom',.55);
-  const N=420,SAMP=[];for(let i=0;i<=N;i++)SAMP.push(curve.getPointAt(i/N));
+  const N=600,SAMP=[];for(let i=0;i<=N;i++)SAMP.push(curve.getPointAt(i/N));
   /* Two rises, because the story needs two. HILLS[0] is checkpoint 06's Pull Hill — the
      climb the car has to fight up. HILLS[1] is checkpoint 10's Platform: it comes later on
      the loop and it is deliberately the higher of the two, so the literal high point of the
@@ -1220,7 +1243,7 @@ addEventListener('scroll',mcta,{passive:true});
      ramp yard, then keeps climbing out to a lookout at the map's edge for the sunset.
      peakR is hard-clamped to stay inside the heightfield/physics walls no matter where
      BR_U actually lands on the spline, so a bad guess here can't put anything out of bounds. */
-  const BR_U=.775,BR_LEN=34,PEAK_DIST=62,PEAK_RISE=10;
+  const BR_U=.775,BR_LEN=34*MK,PEAK_DIST=62*MK,PEAK_RISE=10;
   const PTS_CTR=PTS.reduce((a,p)=>a.add(p),new THREE.Vector3()).divideScalar(PTS.length);
   const BR_START=curve.getPointAt(BR_U).clone();BR_START.y=0;
   const BR_OUT=BR_START.clone().sub(PTS_CTR);BR_OUT.y=0;BR_OUT.normalize();
@@ -1242,7 +1265,7 @@ addEventListener('scroll',mcta,{passive:true});
   const U_YARD=Math.min(.92,BR_YARD_LEN/brCurve.getLength());
   const BN=90,BSAMP=[];for(let i=0;i<=BN;i++)BSAMP.push(brCurve.getPointAt(i/BN));
   // match the branch's road texture density to the main loop's (34 repeats over its full length)
-  const BR_REP=34*(brCurve.getLength()/curve.getLength());
+  const BR_REP=brCurve.getLength()/12;
   const brSmooth=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
   /* The climb finishes at U_TOP rather than at the very end of the curve, so the last
      stretch of road is already level at PEAK_H by the time it reaches the lookout's flat
@@ -1276,7 +1299,7 @@ addEventListener('scroll',mcta,{passive:true});
       const k=(j*px+i)*4;im.data[k]=Math.max(0,Math.min(255,128+dx*120));im.data[k+1]=Math.max(0,Math.min(255,128+dy*120));im.data[k+2]=252;im.data[k+3]=255}
     cx.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,3);t.anisotropy=4;return t}
   /* ---------- zones (terrain is carved around them, so they come first) ---------- */
-  const POND={x:30,z:16,r:11,depth:2.2},PG={x:2,z:-14};
+  const POND={x:30*MK,z:16*MK,r:14,depth:2.3},PG={x:2*MK,z:-14*MK};
   const WATER_Y=.02;
   function edgeR(a){return POND.r*(1+(noise2(Math.cos(a)*2+9,Math.sin(a)*2+9)-.5)*.34)}
   const pondR=(x,z)=>edgeR(Math.atan2(z-POND.z,x-POND.x));
@@ -1338,7 +1361,7 @@ addEventListener('scroll',mcta,{passive:true});
     if(pd<pr*1.32){const bw=1-SM((pd-pr*.94)/(pr*.36));h=h*(1-bw)+(-POND.depth*SM((pr*.99-pd)/(pr*.52)))*bw}
     // valley rim, so the world has a horizon instead of an edge
     const de=Math.max(Math.abs(x),Math.abs(z));
-    if(de>116){const t=SM((de-116)/32);h+=t*(18+(fbm2(x*.04+7,z*.04-3)-.5)*20)}
+    if(de>116*MK){const t=SM((de-116*MK)/(32*MK));h+=t*(18+(fbm2(x*.04+7,z*.04-3)-.5)*20)}
     // the road corridor stays true to the spline, and wins over everything
     const rn=roadNear(x,z),fw=1-SM((rn.d-9.8)/30);
     if(fw>0)h=h*(1-fw)+(rn.ring?BR_H:rn.branch?brHAt(rn.u):hAt(rn.u))*fw;
@@ -1346,7 +1369,7 @@ addEventListener('scroll',mcta,{passive:true});
       if(dd<p.f){const w=1-SM((dd-p.r)/(p.f-p.r));h=h*(1-w)+p.y*w}}
     return h}
   const rockPts=[];
-  const terrainM=new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,map:grainTex(160,.07,120,.55)});
+  const terrainM=new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,map:grainTex(160,.07,Math.round(120*MK),.55)});
   const HF=(function(){
     const nx=Math.round(WS*2/ES)+1,nz=nx,minX=-WS,maxZ=WS;
     const data=[],slope=new Float32Array(nx*nz);
@@ -1396,7 +1419,7 @@ addEventListener('scroll',mcta,{passive:true});
     const slAcc=(x,z)=>{const fi=Math.round((x-minX)/ES),fj=Math.round((maxZ-z)/ES);if(fi<0||fj<0||fi>nx-1||fj>nz-1)return 0;return slope[fi*nz+fj]};
     // boulders, on the steep flanks only, clear of the road
     {let seed=53;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-      while(rockPts.length<38&&tries<5000){tries++;const x=(rnd()-.5)*374,z=(rnd()-.5)*374;const hh=hAcc(x,z);
+      while(rockPts.length<76&&tries<10000){tries++;const x=(rnd()-.5)*(374*MK),z=(rnd()-.5)*(374*MK);const hh=hAcc(x,z);
         if(hh<.5)continue;if(slAcc(x,z)<.42)continue;if(roadNear(x,z).d<11)continue;
         rockPts.push([x,hh,z,.65+rnd()*1.7,rnd()*Math.PI*2])}}
     const rockIM=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1,0),M(0x585349,{roughness:.98,flatShading:true,map:grainTex(64,.09,2,.52)}),rockPts.length);
@@ -1415,9 +1438,25 @@ addEventListener('scroll',mcta,{passive:true});
   function ridgeTint(t){const c=farRidge.geometry.attributes.color,a=c.array;
     for(let i=0;i<a.length;i+=6){a[i]=t[0];a[i+1]=t[1];a[i+2]=t[2];a[i+3]=Math.min(1,t[0]*1.45);a[i+4]=Math.min(1,t[1]*1.45);a[i+5]=Math.min(1,t[2]*1.45)}
     c.needsUpdate=true}
-  /* ---------- road surface ---------- */
+  /* ---------- road surface ----------
+     Asphalt is painted once into a texture: dark aggregate, faint wear in the wheel tracks,
+     solid edge lines and a dashed centre line baked in, so the markings are crisp at any
+     distance instead of being a scatter of floating quads. */
+  const ROAD_REP=Math.round(curve.getLength()/12);
+  function roadTex(){const W=256,H=512,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#303134';x.fillRect(0,0,W,H);const im=x.getImageData(0,0,W,H),d=im.data;
+    for(let jj=0;jj<H;jj++)for(let ii=0;ii<W;ii++){const k=(jj*W+ii)*4,u=ii/W;
+      let n=(hash2(ii*1.73+.5,jj*1.31+.5)-.5)*22+(noise2(ii*.045,jj*.045)-.5)*16+(noise2(ii*.19,jj*.19)-.5)*7;
+      n-=(Math.exp(-((u-.27)**2)/.0035)+Math.exp(-((u-.73)**2)/.0035))*6;d[k]+=n;d[k+1]+=n;d[k+2]+=n+1}
+    x.putImageData(im,0,0);
+    x.fillStyle='rgba(236,232,222,.93)';x.fillRect(W*.045,0,W*.03,H);x.fillRect(W*(1-.045-.03),0,W*.03,H);
+    x.fillStyle='rgba(236,232,222,.9)';for(let s=0;s<2;s++)x.fillRect(W*.488,H*(s*.5+.12),W*.024,H*.25);
+    const t=new THREE.CanvasTexture(c);t.wrapS=THREE.ClampToEdgeWrapping;t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;return t}
+  function curbTex(){const c=document.createElement('canvas');c.width=16;c.height=64;const x=c.getContext('2d');
+    x.fillStyle='#b8322f';x.fillRect(0,0,16,32);x.fillStyle='#ece7db';x.fillRect(0,32,16,32);
+    const t=new THREE.CanvasTexture(c);t.wrapS=THREE.ClampToEdgeWrapping;t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.NearestFilter;t.anisotropy=8;return t}
   function strip(w,yo,mat){const pos=[],idx=[],uv=[];for(let i=0;i<=N;i++){const {p,n}=at(i/N);n.multiplyScalar(w/2);
-      pos.push(p.x-n.x,p.y+yo,p.z-n.z,p.x+n.x,p.y+yo,p.z+n.z);uv.push(0,i/N*34,1,i/N*34);
+      pos.push(p.x-n.x,p.y+yo,p.z-n.z,p.x+n.x,p.y+yo,p.z+n.z);uv.push(0,i/N*ROAD_REP,1,i/N*ROAD_REP);
       if(i<N){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
@@ -1435,10 +1474,23 @@ addEventListener('scroll',mcta,{passive:true});
       if(i<BN){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
-  roadM.map=grainTex(128,.07,1,.72);roadM.map.repeat.set(2,1);
+  roadM.color.setHex(0xffffff);roadM.map=roadTex();edgeM.color.setHex(0x6d685e);
   edgeM.map=grainTex(64,.12,1,.6);edgeM.map.repeat.set(3,1);
   strip(7.6,.04,edgeM);strip(5.8,.09,roadM);
   stripB(7,.04,edgeM);stripB(5.2,.09,roadM);
+  /* kerbs on the bends, so the tight corners read before you are in them */
+  (function(){const R=[],mat=new THREE.MeshLambertMaterial({map:curbTex()});
+    for(let i=0;i<N;i++){const a=at(i/N).tg,b=at((i+2)/N).tg;R.push(Math.acos(Math.max(-1,Math.min(1,a.x*b.x+a.z*b.z))))}
+    const on=R.map((k,i)=>k>.052);const dil=on.map((_,i)=>{for(let q=-4;q<=4;q++)if(on[(i+q+N)%N])return true;return false});
+    const runs=[];let st=-1;for(let i=0;i<=N;i++){const v=i<N&&dil[i];if(v&&st<0)st=i;if(!v&&st>=0){runs.push([st,i]);st=-1}}
+    const seg=curve.getLength()/N;
+    runs.forEach(([a,b])=>{if(b-a<4)return;[1,-1].forEach(sd=>{const pos=[],uv=[],idx=[];let k=0;
+      for(let i=a;i<=b;i++){const {p,n}=at(i/N),o1=2.9,o2=3.5;
+        pos.push(p.x+n.x*sd*o1,p.y+.1,p.z+n.z*sd*o1,p.x+n.x*sd*o2,p.y+.13,p.z+n.z*sd*o2);
+        const v=(i-a)*seg/2;uv.push(0,v,1,v);if(i<b){idx.push(k,k+1,k+2,k+1,k+3,k+2)}k+=2}
+      if(sd<0){for(let q=0;q<idx.length;q+=3){const t=idx[q+1];idx[q+1]=idx[q+2];idx[q+2]=t}}
+      const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+      const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m)})})})();
   /* The ring, built the same way as the branch: a band swept round the circle with its
      height read off the heightfield, so the tarmac sits on the ground rather than near it. */
   function stripRing(w,yo,mat){const SEG=72,pos=[],idx=[],uv=[];
@@ -1446,35 +1498,47 @@ addEventListener('scroll',mcta,{passive:true});
       const ix=RING.x+ca*(RING.r-w/2),iz=RING.z+sa*(RING.r-w/2);
       const ox=RING.x+ca*(RING.r+w/2),oz=RING.z+sa*(RING.r+w/2);
       pos.push(ix,HF.h(ix,iz)+yo,iz,ox,HF.h(ox,oz)+yo,oz);
-      uv.push(0,i/SEG*26,1,i/SEG*26);
+      uv.push(0,i/SEG*10,1,i/SEG*10);
       if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
     g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
   stripRing(7,.04,edgeM);stripRing(5.2,.09,roadM);
-  // dashes round the inside of the circle, so it reads as a lane and not a painted disc
-  (function(){const SEG=48,im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.4),M(0xd8d2c2),SEG);
-    const o=new THREE.Object3D();let k=0;
-    for(let i=0;i<SEG;i++){const a=i/SEG*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a);
-      const dx=RING.x+ca*(RING.r-2.1),dz=RING.z+sa*(RING.r-2.1);
-      o.position.set(dx,HF.h(dx,dz)+.1,dz);o.rotation.set(-Math.PI/2,0,-a);o.updateMatrix();im.setMatrixAt(k++,o.matrix)}
-    im.count=k;S.add(im)})();
   const prog=strip(.28,.11,glow);prog.geometry.setDrawRange(0,0);
-  // lane dashes (instanced)
-  (function(){const cnt=Math.floor(N/5)*2;const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.3),M(0xd8d2c2),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<N;i+=5){const {p,tg,n}=at(i/N);for(const s of [1,-1]){o.position.set(p.x+n.x*2.5*s,p.y+.1,p.z+n.z*2.5*s);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();if(k<cnt)im.setMatrixAt(k++,o.matrix)}}im.count=k;S.add(im)})();
-  // same lane dashes, laid down the branch spur
-  (function(){const cnt=Math.floor(BN/4)*2;const im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.14,1.3),M(0xd8d2c2),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<BN;i+=4){const {p,tg,n}=bAt(i/BN);for(const s of [1,-1]){const dx=p.x+n.x*2.2*s,dz=p.z+n.z*2.2*s;o.position.set(dx,HF.h(dx,dz)+.1,dz);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();if(k<cnt)im.setMatrixAt(k++,o.matrix)}}im.count=k;S.add(im)})();
-  // center dashes keep the road readable through bends and over the hills
-  (function(){const cnt=Math.floor(N/7),im=new THREE.InstancedMesh(new THREE.PlaneGeometry(.2,1.55),M(0xe8dfc9),cnt);const o=new THREE.Object3D();let k=0;for(let i=0;i<N;i+=7){const {p,tg}=at(i/N);o.position.set(p.x,p.y+.115,p.z);o.rotation.set(-Math.PI/2,0,-Math.atan2(tg.x,tg.z));o.updateMatrix();im.setMatrixAt(k++,o.matrix)}im.count=k;S.add(im)})();
   // lamp posts (instanced posts + instanced bulbs so it is 2 draw calls, not 60)
   const lamps=[];
-  (function(){const US=[];for(let i=0;i<N;i+=21)US.push(i/N);
+  (function(){const US=[];for(let i=0;i<N;i+=15)US.push(i/N);
     const postIM=new THREE.InstancedMesh(new THREE.CylinderGeometry(.06,.08,3.2,6),steel,US.length);
     const bulbGeo=new THREE.SphereGeometry(.22,8,8);const o=new THREE.Object3D();
     US.forEach((u,i)=>{const {p,n}=at(u);const bx=p.x+n.x*4.6,bz=p.z+n.z*4.6;
       o.position.set(bx,p.y+1.6,bz);o.rotation.set(0,0,0);o.scale.set(1,1,1);o.updateMatrix();postIM.setMatrixAt(i,o.matrix);
       const bulb=new THREE.Mesh(bulbGeo,M(0x3a3733));bulb.position.set(bx,p.y+3.3,bz);S.add(bulb);lamps.push({u,bulb})});
     S.add(postIM)})();
+  /* ---------- weight plates to collect: drive through one and it goes on the bar ---------- */
+  const plateList=[];let platesGot=0,plateKg=20;
+  (function(){const PD=[[25,0xb8322f],[20,0x2f4f9e],[15,0xd9b23a],[10,0x3f8a56]],hubM=M(0xc9c2b4),NP=24,geo={};
+    for(let i=0;i<NP;i++){let u=(i+.5)/NP;if(JOURNEY.some(J=>Math.abs(J.u-u)<.014))u+=.02;
+      const {p,n}=at(u),off=[-1.4,0,1.4][i%3],[kg,col]=PD[i%4],r=.36+kg/100;
+      if(!geo[kg])geo[kg]=new THREE.CylinderGeometry(r,r,.16,28);
+      const g=new THREE.Group(),disc=new THREE.Mesh(geo[kg],M(col,{emissive:col,emissiveIntensity:.35}));disc.rotation.z=Math.PI/2;disc.castShadow=true;g.add(disc);
+      const hb=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.24,12),hubM);hb.rotation.z=Math.PI/2;g.add(hb);
+      const y0=p.y+1.2;g.position.set(p.x+n.x*off,y0,p.z+n.z*off);S.add(g);plateList.push({g,kg,y0,got:false,ph:i*.7})}})();
+  /* ---------- boost pads on the straights ---------- */
+  const padList=[];let padT=0,padCool=0;
+  (function(){const c=document.createElement('canvas');c.width=128;c.height=160;const x=c.getContext('2d');
+    x.strokeStyle='#ffd257';x.lineWidth=15;x.lineCap='round';x.lineJoin='round';
+    for(let s=0;s<3;s++){const y=34+s*46;x.globalAlpha=.55+s*.2;x.beginPath();x.moveTo(20,y+34);x.lineTo(64,y);x.lineTo(108,y+34);x.stroke()}
+    const tex=new THREE.CanvasTexture(c);tex.anisotropy=8;
+    const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+    const geoP=new THREE.PlaneGeometry(2.4,3.2).rotateX(-Math.PI/2);const us=[];const cand=[];
+    for(let u=.04;u<.96;u+=.004){const t1=at(u-.01).tg,t2=at(u+.01).tg,k=Math.acos(Math.max(-1,Math.min(1,t1.x*t2.x+t1.z*t2.z)));
+      if(Math.abs(hAt(u+.01)-hAt(u-.01))>.25)continue;
+      if(JOURNEY.some(J=>Math.abs(J.u-u)<.012))continue;
+      const q=at(u).p;if(plateList.some(P=>Math.hypot(P.g.position.x-q.x,P.g.position.z-q.z)<8))continue;
+      cand.push([u,k])}
+    cand.sort((A,B)=>A[1]-B[1]);for(const [u] of cand){if(us.length>=5)break;if(us.some(v=>Math.abs(v-u)<.12&&Math.abs(v-u)<.88))continue;us.push(u)}
+    us.forEach((u,i)=>{const {p,tg}=at(u),m=new THREE.Mesh(geoP,mat);m.position.set(p.x,p.y+.12,p.z);m.rotation.y=Math.atan2(tg.x,tg.z)+Math.PI;S.add(m);
+      padList.push({x:p.x,y:p.y,z:p.z,m,ph:i})});padList.mat=mat})();
   /* ---------- water ---------- */
   const pondPts=[];{const K=34;for(let k=0;k<K;k++){const a=k/K*Math.PI*2,rr=edgeR(a);pondPts.push({a,rr,x:POND.x+Math.cos(a)*rr,z:POND.z+Math.sin(a)*rr})}}
   const waterNorm=waterNormTex();
@@ -1499,7 +1563,7 @@ addEventListener('scroll',mcta,{passive:true});
     lilies.forEach(([x,z,s],i)=>{o.position.set(x,WATER_Y+.03,z);o.scale.set(s,s,s);o.rotation.set(-Math.PI/2,0,i);o.updateMatrix();lilyIM.setMatrixAt(i,o.matrix)});S.add(lilyIM)})();
   /* ---------- grass tufts near the road and the water (one draw call) ---------- */
   (function(){if(LOW)return;const T=[];let seed=709;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-    while(T.length<420&&tries<9000){tries++;const x=(rnd()-.5)*372,z=(rnd()-.5)*372;const rd=roadNear(x,z).d;
+    while(T.length<880&&tries<18000){tries++;const x=(rnd()-.5)*(372*MK),z=(rnd()-.5)*(372*MK);const rd=roadNear(x,z).d;
       const pd=Math.hypot(x-POND.x,z-POND.z);
       if(!(rd<20||pd<POND.r*1.9))continue;if(rd<4.2)continue;if(pd<pondR(x,z)*1.05)continue;
       const h=HF.h(x,z);if(HF.slope(x,z)>1.15)continue;if(h<-.2)continue;
@@ -1838,11 +1902,11 @@ addEventListener('scroll',mcta,{passive:true});
       return true};
     // copses first, then loners, so the woods clump the way real ones do
     const centres=[];let tries=0;
-    while(centres.length<16&&tries<800){tries++;const x=(rnd()-.5)*360,z=(rnd()-.5)*360;if(okSpot(x,z,26))centres.push([x,z])}
+    while(centres.length<32&&tries<1600){tries++;const x=(rnd()-.5)*(360*MK),z=(rnd()-.5)*(360*MK);if(okSpot(x,z,26))centres.push([x,z])}
     centres.forEach(([cx,cz])=>{const n=7+(rnd()*11|0);
       for(let i=0;i<n;i++){const a=rnd()*6.283,r=rnd()*18+2,x=cx+Math.cos(a)*r,z=cz+Math.sin(a)*r;
         if(!okSpot(x,z,13))continue;treePts.push([x,z,.78+rnd()*.85,rnd()<.62?0:1,rnd()*6.283])}});
-    tries=0;while(treePts.length<150&&tries<4000){tries++;const x=(rnd()-.5)*368,z=(rnd()-.5)*368;
+    tries=0;while(treePts.length<300&&tries<8000){tries++;const x=(rnd()-.5)*(368*MK),z=(rnd()-.5)*(368*MK);
       if(!okSpot(x,z,13))continue;treePts.push([x,z,.7+rnd()*.8,rnd()<.5?0:1,rnd()*6.283])}
     const conifer=treePts.filter(t=>t[3]===0),broad=treePts.filter(t=>t[3]===1);
     const o=new THREE.Object3D();
@@ -1872,7 +1936,7 @@ addEventListener('scroll',mcta,{passive:true});
     treePts.forEach(([x,z,s])=>{if(roadNear(x,z).d<42)staticBox(x,HF.h(x,z)+1.2,z,.34,1.2,.34)});
     // low scrub, one draw call, to stop the ground reading as bare polygons
     if(!LOW){const B=[];let t2=0;
-      while(B.length<170&&t2<6000){t2++;const x=(rnd()-.5)*372,z=(rnd()-.5)*372;
+      while(B.length<340&&t2<12000){t2++;const x=(rnd()-.5)*(372*MK),z=(rnd()-.5)*(372*MK);
         if(roadNear(x,z).d<5.5)continue;
         if((x-POND.x)**2+(z-POND.z)**2<(pondR(x,z)*1.02)**2)continue;
         if(HF.h(x,z)<-.15||HF.slope(x,z)>1.5)continue;
@@ -1883,7 +1947,7 @@ addEventListener('scroll',mcta,{passive:true});
   })();
   /* ---------- gold rings (the ring-run mission) ---------- */
   const ringPts=[];{let seed=91;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-    while(ringPts.length<6&&tries<5000){tries++;const x=(rnd()-.5)*250,z=(rnd()-.5)*250;
+    while(ringPts.length<6&&tries<5000){tries++;const x=(rnd()-.5)*(250*MK),z=(rnd()-.5)*(250*MK);
       if(roadNear(x,z).d<15)continue;
       if((x-POND.x)**2+(z-POND.z)**2<(POND.r+8)**2)continue;if((x-PG.x)**2+(z-PG.z)**2<24*24)continue;
       if(PADS.some(p=>(p.x-x)**2+(p.z-z)**2<(p.r+6)**2))continue;
@@ -1899,9 +1963,10 @@ addEventListener('scroll',mcta,{passive:true});
   let ringIdx=0;
   /* ---------- missions ---------- */
   const MSAVE=(()=>{try{return JSON.parse(localStorage.getItem('sl_miss')||'{}')}catch(e){return{}}})();
-  const LAP_TARGET=80000;
+  const LAP_TARGET=Math.round(80000*MK/1000)*1000;
   const MISSIONS=[
     {id:'rings',name:'Ring run',hint:'Drive through all six gold rings',goal:6},
+    {id:'plates',name:'Load the bar',hint:'Drive through all 24 weight plates on the road',goal:24},
     {id:'cones',name:'Cone slalom',hint:'Knock over seven cones at the playground',goal:7},
     {id:'swim',name:'Take it swimming',hint:'Drive into the pond and wade through',goal:1},
     {id:'air',name:'Send it',hint:'Catch a full second of air off a ramp',goal:1},
@@ -2120,7 +2185,7 @@ addEventListener('scroll',mcta,{passive:true});
   const critters=[];const CRIT_COL=[0x6b4a30,0x8a7458,0x4c4842,0x715a3e,0x93785a];
   {let seed=311;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
     const herds=[];let tries=0;
-    while(herds.length<(LOW?2:3)&&tries<900){tries++;const x=(rnd()-.5)*220,z=(rnd()-.5)*220;
+    while(herds.length<(LOW?2:3)&&tries<900){tries++;const x=(rnd()-.5)*(220*MK),z=(rnd()-.5)*(220*MK);
       if(roadNear(x,z).d<26)continue;
       if((x-POND.x)**2+(z-POND.z)**2<(POND.r+14)**2)continue;if((x-PG.x)**2+(z-PG.z)**2<30*30)continue;
       if(HF.h(x,z)<.4||HF.slope(x,z)>.55)continue;
@@ -2234,10 +2299,13 @@ addEventListener('scroll',mcta,{passive:true});
         lvScratch=new CANNON.Vec3(),qScratch=new CANNON.Quaternion(),fwdScratch=new CANNON.Vec3(),
         wComp=[0,0,0,0],wLoad=[0,0,0,0];
   // visuals
-  const vis={car:new THREE.Group()};car.add(vis.car);
+  const vis={car:new THREE.Group()};car.add(vis.car);vis.body=new THREE.Group();vis.body.position.y=.55;vis.car.add(vis.body);vis.bodyIn=new THREE.Group();vis.bodyIn.position.y=-.55;vis.body.add(vis.bodyIn);
+  const SKN=420;let skI=0;const skLast=[null,null,null,null];
+  const skid=new THREE.InstancedMesh(new THREE.PlaneGeometry(.32,.66).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:0x080808,transparent:true,opacity:.38,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2}),SKN);
+  skid.count=0;skid.frustumCulled=false;if(skid.instanceMatrix.setUsage)skid.instanceMatrix.setUsage(THREE.DynamicDrawUsage);S.add(skid);
   const add=(g,geo,m,x,y,z,sh=true)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=sh;g.add(o);return o};
   const headM=M(0xfff2c0,{emissive:0xfff2c0,emissiveIntensity:1.3}),tailM=M(0xff3b30,{emissive:0xff3b30,emissiveIntensity:.5});
-  {const g=vis.car;add(g,new THREE.BoxGeometry(2,.62,4),paper,0,.5,0);add(g,new THREE.BoxGeometry(1.9,.35,.6),paper,0,.6,2.1);add(g,new THREE.BoxGeometry(1.7,.62,2),ink,0,1.1,-.2);const ws=add(g,new THREE.BoxGeometry(1.55,.42,.08),M(0x9cc0ff,{roughness:.15,metalness:.5}),0,1.12,.84,false);ws.rotation.x=-.25;add(g,new THREE.BoxGeometry(.55,.64,4.04),red,0,.5,0,false);add(g,new THREE.BoxGeometry(2.1,.1,.5),ink,0,1.25,-2);[-.6,.6].forEach(x=>add(g,new THREE.BoxGeometry(.34,.2,.06),headM,x,.68,2.41,false));[-.7,.7].forEach(x=>add(g,new THREE.BoxGeometry(.34,.16,.06),tailM,x,.62,-2.03,false));add(g,new THREE.CylinderGeometry(.5,.5,.12,18),red,0,1.48,-.2)}
+  {const g=vis.bodyIn;add(g,new THREE.BoxGeometry(2,.62,4),paper,0,.5,0);add(g,new THREE.BoxGeometry(1.9,.35,.6),paper,0,.6,2.1);add(g,new THREE.BoxGeometry(1.7,.62,2),ink,0,1.1,-.2);const ws=add(g,new THREE.BoxGeometry(1.55,.42,.08),M(0x9cc0ff,{roughness:.15,metalness:.5}),0,1.12,.84,false);ws.rotation.x=-.25;add(g,new THREE.BoxGeometry(.55,.64,4.04),red,0,.5,0,false);add(g,new THREE.BoxGeometry(2.1,.1,.5),ink,0,1.25,-2);[-.6,.6].forEach(x=>add(g,new THREE.BoxGeometry(.34,.2,.06),headM,x,.68,2.41,false));[-.7,.7].forEach(x=>add(g,new THREE.BoxGeometry(.34,.16,.06),tailM,x,.62,-2.03,false));add(g,new THREE.CylinderGeometry(.5,.5,.12,18),red,0,1.48,-.2)}
   function wheelMesh(r,wd){const g=new THREE.Group();g.rotation.order='YXZ';const t=new THREE.Mesh(new THREE.CylinderGeometry(r,r,wd,18),rubber);t.rotation.z=Math.PI/2;t.castShadow=true;g.add(t);const rim=new THREE.Mesh(new THREE.CylinderGeometry(r*.58,r*.58,wd+.02,8),bone);rim.rotation.z=Math.PI/2;g.add(rim);return g}
   const wv={car:[0,1,2,3].map(()=>wheelMesh(.46,.42))};wv.car.forEach(w=>vis.car.add(w));
   const V=VEHS.car;
@@ -2401,7 +2469,7 @@ addEventListener('scroll',mcta,{passive:true});
   const rot=$('#drot');let rotDismissed=false;
   function checkRot(){rot.classList.toggle('on',active&&TOUCH&&innerHeight>innerWidth&&!rotDismissed&&!cineOn)}
   $('#drotx').onclick=()=>{rotDismissed=true;checkRot()};addEventListener('resize',checkRot);addEventListener('orientationchange',()=>setTimeout(()=>{resize();checkRot()},250));
-  function resetCar(){const {p,tg}=at(progU);
+  function resetCar(){const {p,tg}=at(progU);PREV.ok=false;physAcc=0;leanVf=0;leanA=0;if(vis.body)vis.body.rotation.set(0,0,0);
     chassisB.position.set(p.x,p.y+1.4,p.z);chassisB.velocity.set(0,0,0);chassisB.angularVelocity.set(0,0,0);
     chassisB.force.set(0,0,0);chassisB.torque.set(0,0,0);chassisB.linearDamping=.01;chassisB.angularDamping=.4;
     chassisB.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),Math.atan2(tg.x,tg.z));
@@ -2507,7 +2575,7 @@ addEventListener('scroll',mcta,{passive:true});
      was costing real frames for a 180px widget. */
   let mapCache=null;
   function buildMapCache(){
-    const CS=560,k=2,cv2=document.createElement('canvas');cv2.width=cv2.height=CS;
+    const CS=560,k=2/MK,cv2=document.createElement('canvas');cv2.width=cv2.height=CS;
     const c=cv2.getContext('2d');c.translate(CS/2,CS/2);
     c.fillStyle='rgba(45,76,92,.9)';c.beginPath();c.arc(POND.x*k,POND.z*k,POND.r*k,0,6.283);c.fill();
     c.strokeStyle='rgba(143,42,42,.8)';c.lineWidth=1.6;c.strokeRect((PG.x-12)*k,(PG.z-12)*k,24*k,24*k);
@@ -2516,12 +2584,12 @@ addEventListener('scroll',mcta,{passive:true});
     c.strokeStyle='#8a7a5a';c.lineWidth=4.2*k;HILLS.forEach(HL=>{c.beginPath();for(let i=Math.floor(HL.a*N);i<=HL.d*N;i++){const p=SAMP[i];i===Math.floor(HL.a*N)?c.moveTo(p.x*k,p.z*k):c.lineTo(p.x*k,p.z*k)}c.stroke()});
     mapCache=cv2;
   }
-  function drawMap(c,size,big){const sc=size/2/(big?118:60);c.clearRect(0,0,size,size);c.save();c.translate(size/2,size/2);
+  function drawMap(c,size,big){const sc=size/2/(big?118*MK:60);c.clearRect(0,0,size,size);c.save();c.translate(size/2,size/2);
     c.beginPath();c.arc(0,0,size/2-1,0,6.283);c.fillStyle='rgba(18,17,15,.88)';c.fill();c.clip();
     const q=chassisB.quaternion,yaw=Math.atan2(2*(q.w*q.y+q.x*q.z),1-2*(q.y*q.y+q.z*q.z));
     if(!big){let d=(yaw+Math.PI-mapRot);d=Math.atan2(Math.sin(d),Math.cos(d));mapRot+=d*.1;c.rotate(mapRot);c.translate(-chassisB.position.x*sc,-chassisB.position.z*sc)}
     if(!mapCache)buildMapCache();
-    {const s=140*sc;c.drawImage(mapCache,-s,-s,s*2,s*2)}
+    {const s=140*MK*sc;c.drawImage(mapCache,-s,-s,s*2,s*2)}
     c.strokeStyle='#f2eee6';c.lineWidth=2;c.beginPath();const n=Math.floor(progU*MAPS.length);for(let i=0;i<=n&&i<MAPS.length;i++){const p=MAPS[i];i?c.lineTo(p.x*sc,p.z*sc):c.moveTo(p.x*sc,p.z*sc)}c.stroke();
     const t=performance.now()/500,NX=nextStation();
     stations.forEach(s=>{const on=seen.has(s.id),pulse=near===s||NX===s;c.fillStyle=on?'#f2eee6':'#8a857b';c.beginPath();c.arc(s.pos.x*sc,s.pos.z*sc,big?5:3.4,0,6.283);c.fill();if(pulse){c.strokeStyle='rgba(242,238,230,.75)';c.lineWidth=1.5;c.beginPath();c.arc(s.pos.x*sc,s.pos.z*sc,(big?9:6)+Math.sin(t)*2,0,6.283);c.stroke()}if(big){c.fillStyle='#c9c2b4';c.font='600 11px ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace';c.textAlign='left';c.fillText(s.chapter+' '+s.name.toUpperCase(),s.pos.x*sc+9,s.pos.z*sc+4)}});
@@ -2546,6 +2614,7 @@ addEventListener('scroll',mcta,{passive:true});
   mm.onclick=toggleMap;$('#dbigx').onclick=toggleMap;
   /* ---------- loop ---------- */
   const camT=new THREE.Vector3(),look=new THREE.Vector3(),fwd=new THREE.Vector3(),tmp=new THREE.Vector3(),lastV=new THREE.Vector3();
+  let leanVf=0,leanA=0;const leanF=new CANNON.Vec3(),skUp=new THREE.Vector3(0,1,0),skN=new THREE.Vector3(),skQ=new THREE.Quaternion(),skQ2=new THREE.Quaternion(),skM=new THREE.Matrix4(),skP=new THREE.Vector3(),skS=new THREE.Vector3(1,1,1);
   let last=performance.now(),flipT=0,frameN=0,spdS=0,shake=0,idleT=0,cineOn=false,inPond=false,sub=0,pondToast=0,liftShown=false,missHint=false,airT=0;
   let act=-1,chapEase=0,camRoll=0;const lookT=new THREE.Vector3();
   /* ---------- the idle backdrop ----------
@@ -2561,6 +2630,71 @@ addEventListener('scroll',mcta,{passive:true});
   const poster=document.createElement('img');
   poster.id='dposter';poster.alt='';poster.decoding='async';
   if(cv.insertAdjacentElement)cv.insertAdjacentElement('afterend',poster);
+  /* ---------- per-step chassis forces (runs inside every physics step) ---------- */
+  let gradeNow=0,physAcc=0;const PSTEP=1/60;
+  const PREV={p:new CANNON.Vec3(),q:new CANNON.Quaternion(),ok:false},qA=new THREE.Quaternion(),qB=new THREE.Quaternion();
+  const shD=new THREE.Vector3(),shR=new THREE.Vector3(),shU=new THREE.Vector3();
+  function physStep(h){
+      if(sub>0){
+        // buoyancy scales with how submerged it is and is capped under its own weight, so it wallows instead of taking off
+        const lift=chassisB.mass*24*sub*.88;
+        fScratch.set(0,lift,0);chassisB.applyForce(fScratch,chassisB.position);
+        // water grabs the hull: kill spin and sideways slide
+        const av=chassisB.angularVelocity,k=Math.min(.55,sub*9*h);av.x-=av.x*k;av.z-=av.z*k;av.y-=av.y*k*.5;
+        // quadratic drag, so wading has real weight to it
+        const v=chassisB.velocity,vs=v.length();
+        if(vs>.05){const dq=Math.min(chassisB.mass*13,vs*vs*7.5)*sub;fScratch.set(-v.x/vs*dq,-v.y/vs*dq*.4,-v.z/vs*dq);chassisB.applyForce(fScratch,chassisB.position)}}
+      /* ---------- chassis dynamics ----------
+         Three things a raycast vehicle does not give you for free, and all three are
+         what made this car feel like a brick on ice. An anti-roll bar per axle, which
+         trades load across the car in a corner instead of letting it lean over and ride
+         on two wheels. Aero, so the top end tapers off on its own and the faster you go
+         the harder the floor is pressed into the road. And tyre grip that scales with how
+         hard each wheel is actually loaded — a wheel that has gone light in a corner now
+         gives up grip the way a real one does, which is where the understeer comes from. */
+      /* Everything below reuses scratch vectors and arrays held outside the loop. This
+         block runs sixty times a second, and the version that allocated a dozen Vec3s
+         and two arrays per frame handed the collector a steady drip of garbage for no
+         reason — which is exactly the kind of thing that shows up as stutter. */
+      {const wi=veh.wheelInfos,STATIC=chassisB.mass*Math.abs(world.gravity.y)/4;
+       UPV.set(0,1,0);chassisB.quaternion.vmult(UPV,bodyUp);
+       for(let i=0;i<wi.length;i++){const w=wi[i],rest=w.suspensionRestLength||1;
+         const sf=+w.suspensionForce;
+         wLoad[i]=w.isInContact&&isFinite(sf)?Math.max(0,sf):0;
+         wComp[i]=w.isInContact?Math.max(0,Math.min(1,w.suspensionLength/rest)):1}
+       // anti-roll bars — front axle is wheels 0/1, rear is 2/3. Unrolled, so no closure per frame.
+       if(!inPond)for(let ax=0;ax<2;ax++){
+         const l=ax*2,r=l+1,k=ax?ARB_R:ARB_F;
+         // both wheels on the axle have to be down, or landing off a ramp gets jumpy
+         if(!wi[l].isInContact||!wi[r].isInContact||!wi[l].raycastResult||!wi[r].raycastResult)continue;
+         const fN=(wComp[l]-wComp[r])*k;if(!isFinite(fN)||Math.abs(fN)<1)continue;
+         bodyUp.scale(-fN,fScratch);chassisB.applyForce(fScratch,wi[l].raycastResult.hitPointWorld);
+         bodyUp.scale(fN,fScratch);chassisB.applyForce(fScratch,wi[r].raycastResult.hitPointWorld)}
+       /* Aero is drag only, applied at the centre of mass so it cannot pitch the car.
+          Downforce was tried and thrown out: on springs this soft it squashed the
+          suspension until the floor grounded out, which cost half the top speed and
+          eventually put the car on its roof. Drag on its own does the useful half —
+          it tapers the top end and, because it pulls at the centre of mass while the
+          drive pushes at the rear contact patches, it settles the nose under power. */
+       if(!inPond){const vv=chassisB.velocity,vs=Math.hypot(vv.x,vv.z);
+         if(vs>.5&&isFinite(vs)){
+           const dg=Math.min(chassisB.mass*8,vs*vs*AERO_DRAG);
+           fScratch.set(-vv.x/vs*dg,0,-vv.z/vs*dg);chassisB.applyForce(fScratch,chassisB.position)}}
+       lvScratch.copy(chassisB.velocity);chassisB.quaternion.conjugate(qScratch);qScratch.vmult(lvScratch,lvScratch);
+       const lateral=Math.min(1,Math.abs(lvScratch.x)/8),rearGrip=key.h?.58:1,
+             grip=V.slip*wx.slip*(1-sub*.72)*(1+gradeNow*.55)*(1+lateral*.22);
+       for(let i=0;i<wi.length;i++){
+         // load sensitivity: grip climbs with load, but slower than the load does
+         const lr=STATIC>0?wLoad[i]/STATIC:1;
+         const ls=wi[i].isInContact?Math.max(.4,Math.pow(Math.min(LOAD_CAP,lr),LOAD_EXP)):1;
+         wi[i].frictionSlip=grip*(i>1?rearGrip:1)*(isFinite(ls)?ls:1)}
+       // nothing above is allowed to hand the solver a NaN — that is what used to launch the car
+       const F=chassisB.force,T=chassisB.torque;
+       if(!isFinite(F.x)||!isFinite(F.y)||!isFinite(F.z))F.set(0,0,0);
+       if(!isFinite(T.x)||!isFinite(T.y)||!isFinite(T.z))T.set(0,0,0)}
+  }
+  world.addEventListener('preStep',()=>{PREV.p.copy(chassisB.position);PREV.q.copy(chassisB.quaternion);PREV.ok=true;
+    if(active&&driving)physStep(PSTEP)});
   function loop(now){requestAnimationFrame(loop);
     const r=sec.getBoundingClientRect();
     if(active!==wasActive){
@@ -2590,14 +2724,14 @@ addEventListener('scroll',mcta,{passive:true});
        sub=pd<pr*1.05?Math.max(0,Math.min(1,(WATER_Y-(chassisB.position.y-.52))/1.5)):0}
       inPond=sub>.06;
       ZN=zoneAt(progU);const zd=ZN.drag;
-      const boost=key.boost?1:0;
+      padT=Math.max(0,padT-dt);const boost=(key.boost||padT>0)?1:0;
       const eMul=(1-sub*.66)*(1-zd*.52),vmax=V.max*(1+boost*.28)*(1-sub*.68)*(1-zd*.38);
       /* Tractive force used to be flat all the way to the cap, so the car pulled just as
          hard at 90 as it did from rest and then hit a wall. This is the shape a gearbox
          actually gives you: strong off the line, tapering as the revs run out. */
       // pitch: +1 nose-down (descending), -1 nose-up. Taken from the chassis forward axis.
       const fwd=fwdScratch;fwd.set(0,0,1);chassisB.quaternion.vmult(fwd,fwd);
-      const grade=Math.max(0,-fwd.y);
+      const grade=Math.max(0,-fwd.y);gradeNow=grade;
       /* Tractive force. The engine is deliberately modest now — it used to be strong enough
          to reach 60 km/h in under a second, which is why the smallest touch of throttle sent
          the car flying. What it no longer has in raw grunt it gets back on a slope: climbAid
@@ -2637,65 +2771,11 @@ addEventListener('scroll',mcta,{passive:true});
       // cannon integrates damping as pow(1-damping,dt), so anything at or above 1 turns the whole
       // body into NaN on the next step. That was the real cause of the car "flying" over the pond.
       chassisB.linearDamping=.01+sub*.82;
-      if(sub>0){
-        // buoyancy scales with how submerged it is and is capped under its own weight, so it wallows instead of taking off
-        const lift=chassisB.mass*24*sub*.88;
-        fScratch.set(0,lift,0);chassisB.applyForce(fScratch,chassisB.position);
-        // water grabs the hull: kill spin and sideways slide
-        const av=chassisB.angularVelocity,k=Math.min(.55,sub*9*dt);av.x-=av.x*k;av.z-=av.z*k;av.y-=av.y*k*.5;
-        // quadratic drag, so wading has real weight to it
-        const v=chassisB.velocity,vs=v.length();
-        if(vs>.05){const dq=Math.min(chassisB.mass*13,vs*vs*7.5)*sub;fScratch.set(-v.x/vs*dq,-v.y/vs*dq*.4,-v.z/vs*dq);chassisB.applyForce(fScratch,chassisB.position)}
-        if(now-pondToast>6000){pondToast=now;toastMsg(sub>.6?'Wading through, take it slow':'Careful, shallow water')}}
-      /* ---------- chassis dynamics ----------
-         Three things a raycast vehicle does not give you for free, and all three are
-         what made this car feel like a brick on ice. An anti-roll bar per axle, which
-         trades load across the car in a corner instead of letting it lean over and ride
-         on two wheels. Aero, so the top end tapers off on its own and the faster you go
-         the harder the floor is pressed into the road. And tyre grip that scales with how
-         hard each wheel is actually loaded — a wheel that has gone light in a corner now
-         gives up grip the way a real one does, which is where the understeer comes from. */
-      /* Everything below reuses scratch vectors and arrays held outside the loop. This
-         block runs sixty times a second, and the version that allocated a dozen Vec3s
-         and two arrays per frame handed the collector a steady drip of garbage for no
-         reason — which is exactly the kind of thing that shows up as stutter. */
-      {const wi=veh.wheelInfos,STATIC=chassisB.mass*Math.abs(world.gravity.y)/4;
-       UPV.set(0,1,0);chassisB.quaternion.vmult(UPV,bodyUp);
-       for(let i=0;i<wi.length;i++){const w=wi[i],rest=w.suspensionRestLength||1;
-         const sf=+w.suspensionForce;
-         wLoad[i]=w.isInContact&&isFinite(sf)?Math.max(0,sf):0;
-         wComp[i]=w.isInContact?Math.max(0,Math.min(1,w.suspensionLength/rest)):1}
-       // anti-roll bars — front axle is wheels 0/1, rear is 2/3. Unrolled, so no closure per frame.
-       if(!inPond)for(let ax=0;ax<2;ax++){
-         const l=ax*2,r=l+1,k=ax?ARB_R:ARB_F;
-         // both wheels on the axle have to be down, or landing off a ramp gets jumpy
-         if(!wi[l].isInContact||!wi[r].isInContact||!wi[l].raycastResult||!wi[r].raycastResult)continue;
-         const fN=(wComp[l]-wComp[r])*k;if(!isFinite(fN)||Math.abs(fN)<1)continue;
-         bodyUp.scale(-fN,fScratch);chassisB.applyForce(fScratch,wi[l].raycastResult.hitPointWorld);
-         bodyUp.scale(fN,fScratch);chassisB.applyForce(fScratch,wi[r].raycastResult.hitPointWorld)}
-       /* Aero is drag only, applied at the centre of mass so it cannot pitch the car.
-          Downforce was tried and thrown out: on springs this soft it squashed the
-          suspension until the floor grounded out, which cost half the top speed and
-          eventually put the car on its roof. Drag on its own does the useful half —
-          it tapers the top end and, because it pulls at the centre of mass while the
-          drive pushes at the rear contact patches, it settles the nose under power. */
-       if(!inPond){const vv=chassisB.velocity,vs=Math.hypot(vv.x,vv.z);
-         if(vs>.5&&isFinite(vs)){
-           const dg=Math.min(chassisB.mass*8,vs*vs*AERO_DRAG);
-           fScratch.set(-vv.x/vs*dg,0,-vv.z/vs*dg);chassisB.applyForce(fScratch,chassisB.position)}}
-       lvScratch.copy(chassisB.velocity);chassisB.quaternion.conjugate(qScratch);qScratch.vmult(lvScratch,lvScratch);
-       const lateral=Math.min(1,Math.abs(lvScratch.x)/8),rearGrip=key.h?.58:1,
-             grip=V.slip*wx.slip*(1-sub*.72)*(1+grade*.55)*(1+lateral*.22);
-       for(let i=0;i<wi.length;i++){
-         // load sensitivity: grip climbs with load, but slower than the load does
-         const lr=STATIC>0?wLoad[i]/STATIC:1;
-         const ls=wi[i].isInContact?Math.max(.4,Math.pow(Math.min(LOAD_CAP,lr),LOAD_EXP)):1;
-         wi[i].frictionSlip=grip*(i>1?rearGrip:1)*(isFinite(ls)?ls:1)}
-       // nothing above is allowed to hand the solver a NaN — that is what used to launch the car
-       const F=chassisB.force,T=chassisB.torque;
-       if(!isFinite(F.x)||!isFinite(F.y)||!isFinite(F.z))F.set(0,0,0);
-       if(!isFinite(T.x)||!isFinite(T.y)||!isFinite(T.z))T.set(0,0,0)}
-      world.step(1/60,dt,3);
+      if(sub>0&&now-pondToast>6000){pondToast=now;toastMsg(sub>.6?'Wading through, take it slow':'Careful, shallow water')}
+      /* Fixed 60 Hz physics with a real accumulator. cannon's own step(dt,t,n) spreads steps
+         unevenly on 90-240 Hz screens, which reads as judder, so the car is stepped here and
+         drawn interpolated between the last two physics states. */
+      physAcc+=dt;{let n=0;while(physAcc>=PSTEP&&n<4){world.step(PSTEP);physAcc-=PSTEP;n++}if(n>=4)physAcc=0}
       const dv=tmp.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z).sub(lastV).length();lastV.set(chassisB.velocity.x,chassisB.velocity.y,chassisB.velocity.z);if(dv>7){shake=Math.min(1,dv/25);blip(90,.25,.15)}
       if(chassisB.position.y<-9||!isFinite(chassisB.position.y)||!isFinite(chassisB.velocity.x)){resetCar();toastMsg('Pulled you back onto the road')}
       UPV.set(0,1,0);const up=bodyUp;chassisB.quaternion.vmult(UPV,up);if(up.y<.25){flipT+=dt;if(flipT>1.8){resetCar();flipT=0;toastMsg('Back on the road, lock in')}}else flipT=0;
@@ -2764,7 +2844,46 @@ addEventListener('scroll',mcta,{passive:true});
       if(AC&&engG){const spq=isFinite(sp)?sp:0;engG.gain.setTargetAtTime(muted?0:.05+Math.min(.06,spq/300),AC.currentTime,.05);eng.frequency.setTargetAtTime(55+spq*9+(f?12:0),AC.currentTime,.08)}
       honk(!!key.horn);
     }else{if(AC&&engG)engG.gain.setTargetAtTime(0,AC.currentTime,.05);honk(false)}
-    car.position.copy(chassisB.position);car.quaternion.copy(chassisB.quaternion);
+    {const cp=chassisB.position,pp=PREV.p,dx=cp.x-pp.x,dy=cp.y-pp.y,dz=cp.z-pp.z;
+     if(active&&driving&&PREV.ok&&dx*dx+dy*dy+dz*dz<36){const a=Math.min(1,physAcc/PSTEP);
+       car.position.set(pp.x+dx*a,pp.y+dy*a,pp.z+dz*a);
+       qA.set(PREV.q.x,PREV.q.y,PREV.q.z,PREV.q.w);qB.set(chassisB.quaternion.x,chassisB.quaternion.y,chassisB.quaternion.z,chassisB.quaternion.w);
+       car.quaternion.copy(qA).slerp(qB,a)}
+     else{car.position.copy(cp);car.quaternion.copy(chassisB.quaternion)}}
+    /* body lean: the shell rolls out of a corner and squats or dives with the throttle,
+       a couple of degrees at most. Purely visual, the physics body never moves. */
+    if(active&&driving){
+      leanF.set(0,0,1);chassisB.quaternion.vmult(leanF,leanF);
+      const v=chassisB.velocity,vf=v.x*leanF.x+v.y*leanF.y+v.z*leanF.z;
+      const aL=(vf-leanVf)/Math.max(dt,.004);leanVf=vf;leanA+=(aL-leanA)*(1-Math.exp(-dt*6));
+      let grounded=0;for(let i=0;i<4;i++)if(veh.wheelInfos[i].isInContact)grounded++;
+      const k=grounded>=3?1:0,rollT=Math.max(-.075,Math.min(.075,chassisB.angularVelocity.y*vf*.0042))*k,pitchT=Math.max(-.05,Math.min(.05,-leanA*.006))*k;
+      const e=1-Math.exp(-dt*7);vis.body.rotation.z+=(rollT-vis.body.rotation.z)*e;vis.body.rotation.x+=(pitchT-vis.body.rotation.x)*e;
+      /* skid marks from the rear tyres when they let go, or on the handbrake */
+      if(sp>3&&sub<.05)for(let i=2;i<4;i++){const w=veh.wheelInfos[i],rr=w.raycastResult;
+        if(!w.isInContact||!rr||!rr.hitPointWorld)continue;
+        if(!(w.skidInfo<.8||(key.h&&sp>5))){skLast[i]=null;continue}
+        const hp=rr.hitPointWorld,nw=rr.hitNormalWorld;
+        if(skLast[i]&&(hp.x-skLast[i].x)**2+(hp.z-skLast[i].z)**2<.16)continue;
+        skLast[i]={x:hp.x,z:hp.z};
+        skN.set(nw.x,nw.y,nw.z);if(skN.y<.5)skN.set(0,1,0);
+        const q=chassisB.quaternion,yaw=Math.atan2(2*(q.w*q.y+q.x*q.z),1-2*(q.y*q.y+q.z*q.z));
+        skQ.setFromUnitVectors(skUp,skN);skQ2.setFromAxisAngle(skUp,yaw);skQ.multiply(skQ2);
+        skP.set(hp.x+skN.x*.035,hp.y+skN.y*.035,hp.z+skN.z*.035);skM.compose(skP,skQ,skS);
+        skid.setMatrixAt(skI,skM);skI=(skI+1)%SKN;skid.count=Math.min(SKN,skid.count+1);skid.instanceMatrix.needsUpdate=true}}
+    if(active&&driving){const cp=car.position;
+      for(let i=0;i<plateList.length;i++){const P=plateList[i];if(P.got)continue;
+        P.g.rotation.y+=dt*2.2;P.g.position.y=P.y0+Math.sin(now/420+P.ph)*.16;
+        const dx=P.g.position.x-cp.x,dz=P.g.position.z-cp.z;
+        if(dx*dx+dz*dz<3.3*3.3&&Math.abs(P.g.position.y-cp.y)<3){P.got=true;P.g.visible=false;platesGot++;plateKg+=P.kg*2;
+          blip(640+P.kg*14,.14,.1);toastMsg('+'+P.kg+' kg a side \u00b7 '+plateKg+' kg on the bar ('+platesGot+'/'+plateList.length+')');missSet('plates',platesGot);
+          if(platesGot===plateList.length)setTimeout(()=>toastMsg('Every plate loaded. '+plateKg+' kg. Lift it.'),1800)}}
+      padCool=Math.max(0,padCool-dt);
+      if(padList.mat)padList.mat.opacity=.6+.3*Math.sin(now/170);
+      if(padCool<=0)for(let i=0;i<padList.length;i++){const Q=padList[i],dx=Q.x-cp.x,dz=Q.z-cp.z;
+        if(dx*dx+dz*dz<2.7*2.7&&Math.abs(Q.y-cp.y)<2.5){padT=1.6;padCool=1.2;
+          leanF.set(0,0,1);chassisB.quaternion.vmult(leanF,leanF);chassisB.velocity.x+=leanF.x*5;chassisB.velocity.z+=leanF.z*5;
+          shake=Math.max(shake,.3);blip(980,.16,.1);setTimeout(()=>blip(1320,.2,.08),90);break}}}
     if(sub>0&&active){car.position.y-=sub*.3;ripple.position.set(car.position.x,WATER_Y+.05,car.position.z);ripple.material.opacity=Math.min(.55,sp/9)*sub;ripple.scale.setScalar(1.7+(now/300)%1.3)}else ripple.material.opacity=0;
     waterNorm.offset.set(now/26000,now/17000);
     // wheels
@@ -2793,7 +2912,7 @@ addEventListener('scroll',mcta,{passive:true});
         if(dd2>.6){const tRy=Math.atan2(dx,dz);let rel=tRy-c.ry;rel=Math.atan2(Math.sin(rel),Math.cos(rel));
           c.ry+=rel*Math.min(1,dt*(c.state==='flee'?4.5:2.4));c.g.rotation.y=c.ry;
           let nx2=c.g.position.x+Math.sin(c.ry)*c.spd*dt,nz2=c.g.position.z+Math.cos(c.ry)*c.spd*dt;
-          nx2=Math.max(-128,Math.min(128,nx2));nz2=Math.max(-128,Math.min(128,nz2));
+          nx2=Math.max(-128*MK,Math.min(128*MK,nx2));nz2=Math.max(-128*MK,Math.min(128*MK,nz2));
           c.g.position.set(nx2,HF.h(nx2,nz2),nz2)}
         else if(c.state!=='graze'){c.state='graze';c.t=3+Math.random()*5}
         c.legs.forEach((lg,li)=>{lg.rotation.x=Math.sin(tt*(c.state==='flee'?12:5.5)+li*Math.PI/2)*(c.state==='flee'?.75:.42)})}
@@ -2851,7 +2970,10 @@ addEventListener('scroll',mcta,{passive:true});
       if(Math.abs(camRoll)>.0005){camRoll*=Math.exp(-dt*4)}
       if(Math.abs(C.fov-42)>.02){C.fov+=(42-C.fov)*(1-Math.exp(-dt*2));C.updateProjectionMatrix()}}
     const sunOff=recapCam?SUN_OFF_LOW:SUN_OFF_DEFAULT;
-    sun.position.set(car.position.x+sunOff.x,car.position.y+sunOff.y,car.position.z+sunOff.z);sun.target.position.copy(car.position);
+    {const d=shD.copy(sunOff).normalize(),r=shR.set(0,1,0).cross(d).normalize(),u=shU.copy(d).cross(r),tx=60/(sun.shadow.mapSize.x||1024),p=car.position;
+     const a=Math.round((p.x*r.x+p.y*r.y+p.z*r.z)/tx)*tx,b=Math.round((p.x*u.x+p.y*u.y+p.z*u.z)/tx)*tx,c=p.x*d.x+p.y*d.y+p.z*d.z;
+     sun.target.position.set(r.x*a+u.x*b+d.x*c,r.y*a+u.y*b+d.y*c,r.z*a+u.z*b+d.z*c);
+     sun.position.copy(sun.target.position).add(sunOff)}
     sky.position.copy(C.position);stars.position.copy(C.position);stars.rotation.y+=dt*.0015;
     /* ---------- night sky: twinkle, moon, the odd shooting star ---------- */
     starMat.uniforms.uTime.value+=dt;
@@ -2896,6 +3018,9 @@ addEventListener('scroll',mcta,{passive:true});
         else posterState=2}
       catch(e){posterState=2}}
   }
+  {const an=Math.min(8,R.capabilities&&R.capabilities.getMaxAnisotropy?R.capabilities.getMaxAnisotropy():1);
+   if(an>1)S.traverse(o=>{const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
+     ms.forEach(m=>{if(m.map&&m.map.anisotropy<an){m.map.anisotropy=an;m.map.needsUpdate=true}})})}
   requestAnimationFrame(loop);
   /* ---------- cinematic ---------- */
   let cineA=0;
@@ -3078,17 +3203,17 @@ addEventListener('scroll',mcta,{passive:true});
     trans:{mode:'flex',hello:"68 kg on a plastic chair. Then 102.",tips:["Scroll and the photo wipes from before to after.","Same person. Only thing that changed: the plan, and actually sticking to it."]},
     work:{mode:'flex',hello:"Real training photos, no filter.",tips:["Deadlift, double biceps, triceps, curls. Swipe the strip on phone."]},
     offer:{mode:'idle',hello:"This is what you get. All of it.",tips:["A program built for you, form checks on video, food that fits, weekly check-ins, and WhatsApp access to me."]},
-    price:{mode:'point',hello:"₹66 a day. Less than your whey.",tips:["One plan: ₹1,980 a month, everything included.","In person at MUJ Jaipur, or online from anywhere."]},
+    price:{mode:'point',hello:"From ₹699 a month. Less than your whey.",tips:["Three plans: ₹699, ₹1,499 or ₹2,499 a month.","Apex adds 24/7 guidance and in-person coaching when available."]},
     results:{mode:'flex',hello:"My numbers, not a pitch.",tips:["68 to 102 kg, 520 kg total across squat, bench and deadlift.","More on Instagram @swastikk.m."]},
     nope:{mode:'idle',hello:"Honest filter. Read it twice.",tips:["If you want abs in 21 days, this isn't it. If you'll show up three days a week, it is."]},
     apply:{mode:'point',hello:"Two minutes, mostly taps.",tips:["9 quick questions. Mostly taps.","Your answers save if you close the tab. I reply on WhatsApp."]},
-    game:{mode:'point',hello:"Follow the arrow. Each billboard is a chapter.",tips:["Arrow above the car points to the next chapter. The beam of light marks it.","Stop near a billboard or a lifter and press E (or tap the prompt) to look closer.","The sky changes as the story does — you don't have to touch a thing.","The hill loads the deadlift as you climb. The pond is inside the loop, drive in and swim.","Lost? M opens the map. R puts you back on the road."]},
+    game:{mode:'point',hello:"Follow the arrow. Each billboard is a chapter.",tips:["Arrow above the car points to the next chapter. The beam of light marks it.","Stop near a billboard or a lifter and press E (or tap the prompt) to look closer.","The sky changes as the story does — you don't have to touch a thing.","The hill loads the deadlift as you climb. The pond is inside the loop, drive in and swim.","Weight plates float over the road. Drive through them to load the bar.","Yellow chevrons on the straights are boost pads.","Lost? M opens the map. R puts you back on the road."]},
   };
   const STOPS=[['drive','Drive'],['trans','Proof'],['price','Price'],['apply','Apply']];
   let cur='',tmr,tipI=0;
   const inGame=()=>document.documentElement.classList.contains('driving');
   function bshow(html,ms){clearTimeout(tmr);bub.classList.remove('show');setTimeout(()=>{bub.innerHTML=html;bub.classList.add('show')},160);if(ms)tmr=setTimeout(()=>bub.classList.remove('show'),ms)}
-  function say(k){if(k===cur||inGame())return;cur=k;tipI=0;const G=GUIDE[k];if(!G)return;setMode(G.mode);bshow(G.hello+'<em class="bt">Tap me for more</em>',4200)}
+  function say(k){if(k===cur||inGame())return;cur=k;tipI=0;const G=GUIDE[k];if(!G)return;setMode(G.mode);bshow(G.hello+'<em class="bt">Tap me for more</em>',matchMedia('(max-width:900px)').matches?2600:4200)}
   const secs=Object.keys(GUIDE).map(id=>document.getElementById(id)).filter(Boolean);
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)say(e.target.id)})},{rootMargin:'-40% 0px -40% 0px'});secs.forEach(s=>io.observe(s));
   addEventListener('pointermove',e=>{mx=(e.clientX/innerWidth-0.12)*2;my=(e.clientY/innerHeight-0.82)*2},{passive:true});
@@ -3259,7 +3384,7 @@ const STEPS=[
  {s:1,label:'Main goal',type:'choice',opts:['Build muscle','Get stronger','Both','Lose fat, keep strength'],req:true},
  {s:2,label:'Days per week you can train',type:'tiles',opts:['2-3','4','5','6'],unit:'days',req:true},
  {s:2,label:'Any injuries or pain?',type:'multi',opts:['None','Lower back','Knees','Shoulders','Other'],excl:'None',hint:'Tap all that apply.',req:true},
- {s:3,label:'Plan',type:'choice',opts:['Online · ₹500/month','In person · ₹1,200/month','Not sure yet'],req:true},
+ {s:3,label:'Plan',type:'choice',opts:['Foundation · ₹699/month','Momentum · ₹1,499/month','Apex · ₹2,499/month','Not sure yet'],req:true},
  {s:4,label:'WhatsApp number',type:'tel',hint:"This is how I'll reach you. Nobody else sees it.",req:true},
 ];
 let ST={},cur=0,rev=false,backToRev=false,started=false;
@@ -3494,4 +3619,6 @@ $$('#teaser [data-goal]').forEach(b=>b.onclick=()=>{
   const t=$('#apply');setTimeout(()=>lenis?lenis.scrollTo(t,{duration:1.2}):t.scrollIntoView({behavior:'smooth'}),250);
 });
 render();
-
+/* keep the floating mascot and WhatsApp pill off the footer */
+(function(){try{const f=document.querySelector('footer');if(!f||!('IntersectionObserver' in window))return;
+  new IntersectionObserver(es=>es.forEach(e=>document.documentElement.classList.toggle('at-foot',e.isIntersecting)),{rootMargin:'0px 0px -40px 0px'}).observe(f)}catch(e){}})();
