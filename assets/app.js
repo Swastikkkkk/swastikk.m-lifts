@@ -2106,12 +2106,12 @@ addEventListener('scroll',mcta,{passive:true});
      and tucks in towards the roof, and paint, glass and chrome get a small reflection map
      so the bodywork catches the sky the way lacquer does. Player and traffic share it. */
   const CARENV=(function(){const cv=(fn)=>{const c=document.createElement('canvas');c.width=c.height=64;fn(c.getContext('2d'));return c};
-    const side=cv(x=>{const g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#6f86a0');g.addColorStop(.46,'#b4bec6');g.addColorStop(.52,'#3c3b37');g.addColorStop(1,'#161513');x.fillStyle=g;x.fillRect(0,0,64,64)});
-    const up=cv(x=>{x.fillStyle='#7d93ab';x.fillRect(0,0,64,64);const g=x.createRadialGradient(32,32,2,32,32,30);g.addColorStop(0,'#e8eef4');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)});
+    const side=cv(x=>{const g=x.createLinearGradient(0,0,0,64);g.addColorStop(0,'#566b82');g.addColorStop(.46,'#9aa6b0');g.addColorStop(.52,'#3c3b37');g.addColorStop(1,'#161513');x.fillStyle=g;x.fillRect(0,0,64,64)});
+    const up=cv(x=>{x.fillStyle='#4e6178';x.fillRect(0,0,64,64);const g=x.createRadialGradient(32,32,2,32,32,30);g.addColorStop(0,'#aab6c2');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64)});
     const dn=cv(x=>{x.fillStyle='#22211e';x.fillRect(0,0,64,64)});
     const t=new THREE.CubeTexture([side,side,up,dn,side,side]);t.needsUpdate=true;return t})();
-  const phong=(c,o)=>new THREE.MeshPhongMaterial(Object.assign({color:c,specular:0x4a4a4a,shininess:80,envMap:CARENV,reflectivity:.14,combine:THREE.MixOperation},o||{}));
-  const carGlassM=phong(0x080b0e,{specular:0x8a8a8a,shininess:110,reflectivity:.28,side:THREE.DoubleSide});
+  const phong=(c,o)=>new THREE.MeshPhongMaterial(Object.assign({color:c,specular:0x3a3a3a,shininess:60,envMap:CARENV,reflectivity:.1,combine:THREE.MixOperation},o||{}));
+  const carGlassM=phong(0x080b0e,{specular:0x8a8a8a,shininess:110,reflectivity:.16,side:THREE.DoubleSide});
   const chromeM=phong(0xd2d4d6,{specular:0xffffff,shininess:120,reflectivity:.7});
   const alloyM=phong(0xb2b5b8,{specular:0xbbbbbb,shininess:80,reflectivity:.42});
   const trimM=new THREE.MeshPhongMaterial({color:0x131313,specular:0x1c1c1c,shininess:18,side:THREE.DoubleSide});
@@ -2384,9 +2384,9 @@ addEventListener('scroll',mcta,{passive:true});
   skid.count=0;skid.frustumCulled=false;if(skid.instanceMatrix.setUsage)skid.instanceMatrix.setUsage(THREE.DynamicDrawUsage);S.add(skid);
   const add=(g,geo,m,x,y,z,sh=true)=>{const o=new THREE.Mesh(geo,m);o.position.set(x,y,z);o.castShadow=sh;g.add(o);return o};
   const headM=M(0xfff2c0,{emissive:0xfff2c0,emissiveIntensity:1.3}),tailM=M(0xff3b30,{emissive:0xff3b30,emissiveIntensity:.5});
-  const PCAR=buildCar({paint:0xa31c1c,roof:0x0f0f0f,r:VEHS.car.r,zf:VEHS.car.zf,zb:VEHS.car.zb,F:2.2,B:-2.2,W:2.24,head:headM,tail:tailM});
+  const PCAR=buildCar({paint:0x8e1616,r:VEHS.car.r,zf:VEHS.car.zf,zb:VEHS.car.zb,F:2.2,B:-2.2,W:2.3,head:headM,tail:tailM});
   PCAR.g.position.y=.05-(VEHS.car.rest-.07)-VEHS.car.r;vis.bodyIn.add(PCAR.g);
-  const wv={car:[0,1,2,3].map(i=>makeWheel(VEHS.car.r,.42,i%2?-1:1,true))};wv.car.forEach(k=>vis.car.add(k.w));
+  const wv={car:[0,1,2,3].map(i=>makeWheel(VEHS.car.r,.36,i%2?-1:1,true))};wv.car.forEach(k=>vis.car.add(k.w));
   /* real headlights once the light drops: one spot on the road ahead, no shadow */
   let carHL=null;if(!LOW){carHL=new THREE.SpotLight(0xfff1d6,0,70,.52,.55,1.1);carHL.position.set(0,.1,2.3);carHL.target.position.set(0,-1.4,16);vis.car.add(carHL);vis.car.add(carHL.target)}
   const V=VEHS.car;
@@ -2825,7 +2825,12 @@ addEventListener('scroll',mcta,{passive:true});
       const climb=Math.max(0,fwd.y);
       const climbAid=climb*chassisB.mass*Math.abs(world.gravity.y)/2;
       const sr=Math.min(1,sp/Math.max(1,vmax)),tq=f?1-.35*sr*sr:1;
-      const force=(f-b)*(V.engine*tq+(f?climbAid:0))*(1+boost*.4)*eMul*(sp>vmax?0:1);
+      /* S/down: brakes first while you are still rolling forward, then a proper reverse gear
+         (with its own hill help) instead of the engine limply fighting the car's momentum */
+      const vfw=chassisB.velocity.x*fwd.x+chassisB.velocity.y*fwd.y+chassisB.velocity.z*fwd.z;
+      const braking=b&&!f&&vfw>1.2;
+      const revF=(b&&!f&&!braking&&vfw>-12)?(V.engine*1.3+grade*chassisB.mass*Math.abs(world.gravity.y)/2)*(1-sub*.5):0;
+      const force=f?(V.engine*tq+climbAid)*(1+boost*.4)*eMul*(sp>vmax?0:1):-revF;
       veh.applyEngineForce(-force,2);veh.applyEngineForce(-force,3);
       /* Downhill used to run away: engine force cuts out at V.max, but nothing opposed gravity
          on a descent, so the car kept accelerating with only the 2.2 coast brake resisting it.
@@ -2839,7 +2844,7 @@ addEventListener('scroll',mcta,{passive:true});
       /* Brakes are plumbed the way a real car's are: front biased under normal braking,
          because that is where the weight goes when you slow down, and the handbrake on
          the rear axle only, which is what lets it rotate the car instead of just stopping it. */
-      const svc=Math.max(coast,gradeBrake,govBrake);
+      const svc=Math.max(coast,gradeBrake,govBrake,braking?16:0);
       for(let i=0;i<4;i++){const fr=i<2;veh.setBrake(Math.max(svc*(fr?1.25:.75),key.h?(fr?0:52):0),i)}
       // hard ceiling: if it is still climbing past the cap, damp the velocity directly
       if(sp>vmax*1.18&&!inPond){const s=vmax*1.18/sp;chassisB.velocity.x*=s;chassisB.velocity.z*=s}
@@ -2978,7 +2983,7 @@ addEventListener('scroll',mcta,{passive:true});
     waterNorm.offset.set(now/26000,now/17000);
     // wheels
     const wi=veh.wheelInfos,wl=wv.car;
-    wl.forEach((k,i)=>{const c=wi[i].chassisConnectionPointLocal;k.w.position.set(c.x,.05-wi[i].suspensionLength,c.z);k.w.rotation.set(0,i<2?wi[i].steering:0,0);k.spin.rotation.x=wi[i].rotation});
+    wl.forEach((k,i)=>{const c=wi[i].chassisConnectionPointLocal;k.w.position.set(c.x*.9,.05-wi[i].suspensionLength,c.z);k.w.rotation.set(0,i<2?wi[i].steering:0,0);k.spin.rotation.x=wi[i].rotation});
     if(frameN%10===0){const ni=Math.max(0,Math.min(1.8,(.85-sun.intensity)*3.2));if(carHL)carHL.intensity=ni;headM.emissiveIntensity=1+ni*.5;npcHeadM.emissiveIntensity=.9+ni*.6}
     if(active)for(let i=0;i<dyn.length;i++){const d=dyn[i];if(d.body.sleepState===2&&frameN%30)continue;d.mesh.position.copy(d.body.position);d.mesh.quaternion.copy(d.body.quaternion);if(d.body.position.y<-5){d.body.position.copy(d.home);d.body.quaternion.copy(d.q);d.body.velocity.setyou();d.body.angularVelocity.setyou()}}
     const tt=now/1000;if(active)anims.forEach(a=>{const dd=Math.hypot(a.g.pos.x-car.position.x,a.g.pos.z-car.position.z);if(dd<70)a.pose(a.F,tt*a.speed)});
