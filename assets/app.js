@@ -1608,29 +1608,34 @@ addEventListener('scroll',mcta,{passive:true});
      you could actually be looking at in the render list. */
   const CULL=[];
   /* One caption design for the whole journey: a red rule, a small chapter line, the story
-     line big, and the date/place small underneath. Dark panel, bone type, no glow — it reads
-     as a printed board bolted to a frame rather than a screen floating in a field. */
+     line big, and the date/place small underneath. Printed on warm paper with ink type and
+     a thin keyline — the same placard the chapter markers use — so it reads as a poster bolted
+     to a frame rather than a dark screen floating in a field, and stays legible at night. */
   const CAPS='600 %dpx -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif';
   const CAPM='600 %dpx ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace';
   function capTex(eye,line,sub){const w=1024,h=224,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#14130f';x.fillRect(0,0,w,h);x.fillStyle='#b8322f';x.fillRect(0,0,w,7);
+    x.fillStyle='#f3eee4';x.fillRect(0,0,w,h);
+    x.strokeStyle='rgba(25,22,17,.14)';x.lineWidth=2;x.strokeRect(12,12,w-24,h-24);
+    x.fillStyle='#b8322f';x.fillRect(0,0,w,8);
     x.textBaseline='middle';x.textAlign='left';
-    if(eye){x.fillStyle='#9a958c';x.font=CAPM.replace('%d',26);x.fillText(eye.toUpperCase(),36,48,w-72)}
-    x.fillStyle='#f2eee6';let fs=78;x.font=CAPS.replace('%d',fs);
-    while(x.measureText(line).width>w-72&&fs>32){fs-=3;x.font=CAPS.replace('%d',fs)}
-    x.fillText(line,36,eye?(sub?122:128):(sub?112:118));
-    if(sub){x.fillStyle='#8d887f';x.font=CAPM.replace('%d',24);x.fillText(sub.toUpperCase(),36,186,w-72)}
+    if(eye){x.fillStyle='#b8322f';x.font=CAPM.replace('%d',26);x.fillText(eye.toUpperCase(),40,50,w-80)}
+    x.fillStyle='#191611';let fs=78;x.font=CAPS.replace('%d',fs);
+    while(x.measureText(line).width>w-80&&fs>32){fs-=3;x.font=CAPS.replace('%d',fs)}
+    x.fillText(line,40,eye?(sub?122:128):(sub?112:118));
+    if(sub){x.fillStyle='#7d776b';x.font=CAPM.replace('%d',24);x.fillText(sub.toUpperCase(),40,186,w-80)}
     const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
   /* Every chapter gets the same board and the board carries four things and no more:
      the chapter number, the title, the hook line from the bible, and the key stat. The
      story itself is told in the overlay as you pass, so no board is ever a wall of text. */
   function chapTex(ch,name,hook,stat){const w=1024,h=368,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#14130f';x.fillRect(0,0,w,h);x.fillStyle='#b8322f';x.fillRect(0,0,w,10);
+    x.fillStyle='#f3eee4';x.fillRect(0,0,w,h);
+    x.strokeStyle='rgba(25,22,17,.15)';x.lineWidth=2;x.strokeRect(14,14,w-28,h-28);
+    x.fillStyle='#b8322f';x.fillRect(0,0,w,11);
     x.textBaseline='middle';x.textAlign='left';
-    x.fillStyle='#b8322f';x.font=CAPM.replace('%d',32);x.fillText('CHAPTER '+ch,44,66);
-    x.fillStyle='#f2eee6';let fs=86;x.font=CAPS.replace('%d',fs);
+    x.fillStyle='#b8322f';x.font=CAPM.replace('%d',32);x.fillText('CHAPTER '+ch,44,70);
+    x.fillStyle='#191611';let fs=86;x.font=CAPS.replace('%d',fs);
     while(x.measureText(name.toUpperCase()).width>w-88&&fs>30){fs-=3;x.font=CAPS.replace('%d',fs)}
-    x.fillText(name.toUpperCase(),44,142);
+    x.fillText(name.toUpperCase(),44,146);
     /* The hook is the line that has to land at speed, so it wraps onto a second line rather
        than shrinking away to nothing — a long quote stays the same size as a short one. */
     if(hook){let hs=42,ln=[];
@@ -1638,12 +1643,12 @@ addEventListener('scroll',mcta,{passive:true});
         ln=[];let cur='';hook.split(' ').forEach(word=>{const t=cur?cur+' '+word:word;
           if(x.measureText(t).width>w-88&&cur){ln.push(cur);cur=word}else cur=t});if(cur)ln.push(cur);
         if(ln.length<=2||hs<=26)break;hs-=2}
-      x.fillStyle='#a8a297';
-      ln.slice(0,2).forEach((t,i)=>x.fillText(t,44,206+i*(hs+10)));}
-    if(stat){x.fillStyle='#211e18';x.fillRect(38,286,w-76,58);x.fillStyle='#b8322f';x.fillRect(38,286,7,58);
-      x.fillStyle='#e6e0d4';let ss=32;x.font=CAPM.replace('%d',ss);
+      x.fillStyle='#5c564b';
+      ln.slice(0,2).forEach((t,i)=>x.fillText(t,44,210+i*(hs+10)));}
+    if(stat){x.fillStyle='#191611';x.fillRect(38,290,w-76,56);x.fillStyle='#b8322f';x.fillRect(38,290,7,56);
+      x.fillStyle='#f3eee4';let ss=32;x.font=CAPM.replace('%d',ss);
       while(x.measureText(stat).width>w-128&&ss>15){ss-=1;x.font=CAPM.replace('%d',ss)}
-      x.fillText(stat,64,316)}
+      x.fillText(stat,64,318)}
     const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
   const CHAPM=new THREE.MeshBasicMaterial({side:THREE.DoubleSide});
   /* These two used to be positioned by their CENTRE at a hardcoded height, which ignored
@@ -1746,8 +1751,8 @@ addEventListener('scroll',mcta,{passive:true});
   const markPanelG=new THREE.BoxGeometry(5.4,2.3,.2),markFaceG=new THREE.PlaneGeometry(5.2,2.14),markPostG=new THREE.BoxGeometry(.2,1,.2);
   const markRuleG=new THREE.BoxGeometry(.22,2.3,.22);
   function beatTex(txt){const w=512,h=128,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#14130f';x.fillRect(0,0,w,h);x.fillStyle='#b8322f';x.fillRect(0,0,9,h);
-    x.fillStyle='#f2eee6';x.textAlign='center';x.textBaseline='middle';
+    x.fillStyle='#f3eee4';x.fillRect(0,0,w,h);x.fillStyle='#b8322f';x.fillRect(0,0,9,h);
+    x.fillStyle='#191611';x.textAlign='center';x.textBaseline='middle';
     let fs=54;x.font=CAPS.replace('%d',fs);
     while(x.measureText(txt).width>w-52&&fs>22){fs-=2;x.font=CAPS.replace('%d',fs)}
     x.fillText(txt,w/2+4,h/2+2);
@@ -1771,7 +1776,7 @@ addEventListener('scroll',mcta,{passive:true});
        itself in the hillside. */
     const gy=HF.h(x,z),base=Math.max(y,gy),drop=base-gy,ph=1.55+drop;
     const g=new THREE.Group();g.position.set(x,base,z);g.rotation.y=ry;S.add(g);
-    const pan=new THREE.Mesh(beatPanelG,ink);pan.position.y=2.1;pan.castShadow=true;g.add(pan);
+    const pan=new THREE.Mesh(beatPanelG,paper);pan.position.y=2.1;pan.castShadow=true;g.add(pan);
     const fa=new THREE.Mesh(beatFaceG,new THREE.MeshBasicMaterial({map:beatTex(txt)}));fa.position.set(0,2.1,.09);g.add(fa);
     [-1,1].forEach(sx=>{const po=new THREE.Mesh(beatPostG,steel);po.scale.y=ph;po.position.set(sx*1.75,ph/2-drop,0);g.add(po)});
     staticBox(x,base+1.9,z,2.3,.9,.2,ry);g.userData.story='beat';CULL.push(g);return g}
