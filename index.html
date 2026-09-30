@@ -972,20 +972,21 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ===== TOOL MENU =====
-   Five buttons in a row ate the top third of a phone screen. On touch they
-   collapse behind one toggle; on desktop the row stays open as before. */
-#dmenu{display:none}
+   One toggle, every screen. The tool buttons used to sit in an open row on
+   desktop and only collapse on touch; now they always live behind the Menu
+   button so the game view stays clean — just the map and Menu — everywhere.
+   The keyboard shortcuts (L, B, N, R, M) still work regardless. */
+#dmenu{display:inline-block}
 .mchev{display:inline-block;transition:transform .2s}
 #dmenu[aria-expanded="true"] .mchev{transform:rotate(180deg)}
-#drive.touch #dmenu{display:inline-block}
-#drive.touch .drow{
+.drow{
   display:none;flex-direction:column;align-items:stretch;gap:6px;
-  background:rgba(10,10,9,.9);backdrop-filter:blur(10px);
+  background:rgba(10,10,9,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid rgba(242,238,230,.18);border-radius:14px;padding:8px;
-  min-width:172px;
+  min-width:172px;max-width:none;
 }
-#drive.touch .drow.open{display:flex;animation:dvin .18s ease-out}
-#drive.touch .drow .dbtn{width:100%;text-align:center}
+.drow.open{display:flex;animation:dvin .18s ease-out}
+.drow .dbtn{width:100%;text-align:center}
 
 /* ===== STORY READER ===== */
 #dread{position:fixed;inset:0;z-index:8;display:none;background:rgba(8,8,7,.97);overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -997,7 +998,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 #dreadlist .rc{color:var(--bone);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
 #dreadlist .rq{font-family:var(--serif);font-weight:600;font-size:clamp(19px,2.6vw,27px);line-height:1.15;margin:7px 0 0;letter-spacing:-.02em}
 #dreadlist .rb{color:var(--bone);font-size:14px;line-height:1.55;margin:8px 0 0}
-#dreadlist img{width:100%;max-width:210px;border-radius:10px;margin-top:12px;display:block}
+#dreadlist img{width:100%;max-width:250px;border-radius:8px;margin:16px auto 4px;display:block;border:6px solid var(--paper);box-shadow:0 16px 40px rgba(0,0,0,.5)}
 .rd-x{position:fixed;right:18px;top:calc(18px + env(safe-area-inset-top,0px));z-index:2}
 
 /* ===== PHONE LAYOUT =====
