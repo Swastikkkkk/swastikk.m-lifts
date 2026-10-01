@@ -793,10 +793,9 @@ footer{position:relative;overflow:hidden}
 .drow{flex-wrap:wrap;justify-content:flex-end;max-width:360px}
 #drive.touch #dlift{top:auto;bottom:calc(170px + env(safe-area-inset-bottom,0px));transform:none}
 #drive.touch #dlift b{font-size:56px}
-html.driving #guide{z-index:170}
-html.driving #guide canvas{width:130px;height:160px}
-html.driving #bubble{left:88px;bottom:125px}
-@media (pointer:coarse){html.driving #guide{display:none}}
+/* The little mascot guide belongs to the landing page, not the game — hide it
+   whenever the drive is open so it never sits in the corner of the world. */
+html.driving #guide{display:none!important}
 /* ===== GALLERY ===== */
 .rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(190px,235px);gap:clamp(12px,1.6vw,20px);margin-top:clamp(36px,4vw,60px);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:thin}
 .rail figure{margin:0;scroll-snap-align:start}
@@ -981,12 +980,15 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 #dmenu[aria-expanded="true"] .mchev{transform:rotate(180deg)}
 .drow{
   display:none;flex-direction:column;align-items:stretch;gap:6px;
-  background:rgba(10,10,9,.9);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  background:rgba(10,10,9,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid rgba(242,238,230,.18);border-radius:14px;padding:8px;
-  min-width:172px;max-width:none;
+  min-width:184px;max-width:none;
+  /* every tool lives in here; if the list is taller than the screen it scrolls
+     inside the panel instead of running off the top or bottom */
+  max-height:min(70vh,460px);overflow-y:auto;overscroll-behavior:contain;
 }
 .drow.open{display:flex;animation:dvin .18s ease-out}
-.drow .dbtn{width:100%;text-align:center}
+.drow .dbtn{width:100%;text-align:center;flex:none}
 
 /* ===== STORY READER ===== */
 #dread{position:fixed;inset:0;z-index:8;display:none;background:rgba(8,8,7,.97);overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -998,7 +1000,7 @@ h1,h2,h3,h4,.h2,.qt,.mani p,.done .gl{text-wrap:balance}
 #dreadlist .rc{color:var(--bone);font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono)}
 #dreadlist .rq{font-family:var(--serif);font-weight:600;font-size:clamp(19px,2.6vw,27px);line-height:1.15;margin:7px 0 0;letter-spacing:-.02em}
 #dreadlist .rb{color:var(--bone);font-size:14px;line-height:1.55;margin:8px 0 0}
-#dreadlist img{width:100%;max-width:250px;border-radius:8px;margin:16px auto 4px;display:block;border:6px solid var(--paper);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+#dreadlist img{width:100%;max-width:250px;border-radius:8px;margin:16px auto 4px;display:block}
 .rd-x{position:fixed;right:18px;top:calc(18px + env(safe-area-inset-top,0px));z-index:2}
 
 /* ===== PHONE LAYOUT =====
@@ -1156,7 +1158,7 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
 @media (max-width:900px){
   #dreadlist li{grid-template-columns:1fr;grid-template-rows:none;align-content:center;padding:74px 0 40px!important}
   #dreadlist .rc,#dreadlist .rq,#dreadlist .rb,#dreadlist .rs{grid-row:auto}
-  #dreadlist img{grid-column:1!important;grid-row:auto;max-height:42svh;max-width:100%!important;margin-top:22px!important;justify-self:start}
+  #dreadlist img{grid-column:1!important;grid-row:auto;max-height:46svh;max-width:min(360px,86%)!important;margin:22px auto 0!important;justify-self:center}
   .rd-dots{right:8px;gap:8px}.rd-dots button{width:6px;height:6px}
 }
 </style>

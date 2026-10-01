@@ -1761,7 +1761,7 @@ addEventListener('scroll',mcta,{passive:true});
        group turned back by the difference. */
     const gq=new THREE.Group();gq.rotation.y=rroad-ry;g.add(gq);
     {const gy=HF.h(x,z);if(y-gy>.3){const hh=y-gy;const pil=new THREE.Mesh(new THREE.BoxGeometry(J.big?11:8,hh,1.2),skirtM);pil.position.y=-hh/2;g.add(pil)}}
-    if(J.kind==='photo'){const h=J.big?8.6:13,w=h*(J.ar||.56);const frame=new THREE.Mesh(new THREE.BoxGeometry(w+.6,h+.6,.36),paper);frame.position.y=h/2+1.7;g.add(frame);const mat=new THREE.MeshBasicMaterial({map:gameTex(J.photo,J.ar||.56),side:THREE.DoubleSide});const pic=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);pic.position.set(0,h/2+1.7,.2);g.add(pic);const back=pic.clone();back.rotation.y=Math.PI;back.position.z=-.2;g.add(back);[-1,1].forEach(s=>{const post=new THREE.Mesh(new THREE.BoxGeometry(.3,1.8,.3),ink);post.position.set(s*(w/2-.7),.9,0);g.add(post)});chapBoard(g,J,Math.max(8.5,w+.6),h+2.0);staticBox(x,y+1.4,z,w/2+.3,1.4,.4,ry);
+    if(J.kind==='photo'){const h=J.big?10.5:9,w=h*(J.ar||.56);const frame=new THREE.Mesh(new THREE.BoxGeometry(w+.6,h+.6,.36),paper);frame.position.y=h/2+1.7;g.add(frame);const mat=new THREE.MeshBasicMaterial({map:gameTex(J.photo,J.ar||.56),side:THREE.DoubleSide});const pic=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);pic.position.set(0,h/2+1.7,.2);g.add(pic);const back=pic.clone();back.rotation.y=Math.PI;back.position.z=-.2;g.add(back);[-1,1].forEach(s=>{const post=new THREE.Mesh(new THREE.BoxGeometry(.3,1.8,.3),ink);post.position.set(s*(w/2-.7),.9,0);g.add(post)});chapBoard(g,J,Math.max(8.5,w+.6),h+2.0);staticBox(x,y+1.4,z,w/2+.3,1.4,.4,ry);
       if(J.anim==='deadlift'){const plat=new THREE.Group();plat.position.set(0,0,5.2);g.add(plat);const pf=new THREE.Mesh(new THREE.BoxGeometry(4.6,.14,3.6),M(0x2b241c,{roughness:.9}));pf.position.y=.07;pf.receiveShadow=true;plat.add(pf);const pinset=new THREE.Mesh(new THREE.BoxGeometry(3.6,.01,2.6),M(0x3a332a,{roughness:.88}));pinset.position.y=.145;plat.add(pinset);
         const F=buildLifter();F.root.scale.setScalar(.64);F.root.position.y=.14;F.root.rotation.y=Math.PI;F.root.traverse(o=>{if(o.isMesh)o.castShadow=true});plat.add(F.root);anims.push({F,pose:poseDeadLego,speed:1.15,g:J})}}
     if(J.kind==='sign'){const post=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,3.6,8),steel);post.position.y=1.8;g.add(post);const b=new THREE.Mesh(new THREE.BoxGeometry(8,2.4,.25),paper);b.position.y=4.4;b.castShadow=true;g.add(b);const pl=new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.8),new THREE.MeshBasicMaterial({map:chapTex(J.chapter,J.name,J.hook,J.stat),side:THREE.DoubleSide}));pl.position.set(0,4.4,.14);g.add(pl);const p2=pl.clone();p2.rotation.y=Math.PI;p2.position.z=-.14;g.add(p2);staticBox(x,y+1.8,z,.15,1.8,.15)}
@@ -1781,9 +1781,12 @@ addEventListener('scroll',mcta,{passive:true});
        directly means a print can only ever move further out, never back over the lane. */
     if(J.photos&&J.photos.length>1){
       J.photos.slice(1).forEach((P,k)=>{
-        const n2=k+1,du=7+6*(n2-1),u2=(J.u+du/LEN)%1,dist2=dist+1.2*n2;
+        /* Space the satellite prints out so they never stack on the main board: each one
+           sits further down the road AND further back into the field, forming a clean
+           receding line rather than two frames overlapping at the same spot. */
+        const n2=k+1,du=13+8*(n2-1),u2=(J.u+du/LEN)%1,dist2=dist+3*n2;
         const q=faceAt(u2,J.side,dist2,22);
-        const h=6.2,w=h*P.ar;
+        const h=7,w=h*P.ar;
         const gp=new THREE.Group();gp.position.set(q.x,q.y,q.z);gp.rotation.y=q.ry;S.add(gp);
         {const gy2=HF.h(q.x,q.z);if(y-gy2>.3){const hh=y-gy2;const pil=new THREE.Mesh(new THREE.BoxGeometry(6,hh,1),skirtM);pil.position.y=-hh/2;gp.add(pil)}}
         const fr=new THREE.Mesh(new THREE.BoxGeometry(w+.4,h+.4,.28),paper);fr.position.y=h/2+1.4;gp.add(fr);
