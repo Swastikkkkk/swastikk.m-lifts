@@ -1779,7 +1779,9 @@ addEventListener('scroll',mcta,{passive:true});
        axis; that axis leans up to 26 deg off the true road normal, so on a tight bend one
        print swung back across the road instead of away from it. Placing each on the curve
        directly means a print can only ever move further out, never back over the lane. */
-    if(J.photos&&J.photos.length>1){
+    /* One board per chapter. The extra reference prints turned the roadside into a wall of
+       overlapping photos, so only the lead photo is shown now — clean, one billboard each. */
+    if(false&&J.photos&&J.photos.length>1){
       J.photos.slice(1).forEach((P,k)=>{
         /* Space the satellite prints out so they never stack on the main board: each one
            sits further down the road AND further back into the field, forming a clean
@@ -1883,13 +1885,11 @@ addEventListener('scroll',mcta,{passive:true});
     [-1,1].forEach(sx=>{const po=new THREE.Mesh(markPostG,steel);po.scale.y=ph;po.position.set(sx*2.1,ph/2-drop,0);g.add(po)});
     [-1,1].forEach(sx=>staticBox(x+Math.cos(ry)*sx*2.1,base+1.2,z-Math.sin(ry)*sx*2.1,.12,1.2,.12,ry));g.userData.story='mark';CULL.push(g);return g}
   const BUILD=[];
-  JOURNEY.forEach((J,i)=>{
-    const prev=i?JOURNEY[i-1].u:.004,gap=(J.u-prev)*LEN,lines=BEATS[J.id]||[];
-    if(gap<20){if(lines[1])BUILD.push(()=>beatSign(J.u-gap*.5/LEN,J.side,lines[1]))}
-    else{
-      lines.slice(0,2).forEach((t,k)=>{const back=gap*(k?.42:.62);BUILD.push(()=>beatSign(J.u-back/LEN,J.side,t))});
-      BUILD.push(()=>chapterMark(J.u-gap*.22/LEN,-J.side,J));
-    }});
+  /* The between-chapter quote signs and the separate chapter-name markers are gone. Each
+     chapter already has one photo board carrying its caption, so these extra signs only
+     crowded the roadside. The story line still arrives in the overlay as you reach a board.
+     (beatSign / chapterMark / BEATS are kept above but no longer placed.) */
+  void beatSign;void chapterMark;void BEATS;
   (function(){
     const drain=()=>{const t0=performance.now();
       while(BUILD.length&&performance.now()-t0<7)BUILD.shift()();
