@@ -1690,43 +1690,55 @@ addEventListener('scroll',mcta,{passive:true});
      to a frame rather than a dark screen floating in a field, and stays legible at night. */
   const CAPS='600 %dpx -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif';
   const CAPM='600 %dpx ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace';
-  function capTex(eye,line,sub){const w=1024,h=224,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#f3eee4';x.fillRect(0,0,w,h);
-    x.strokeStyle='rgba(25,22,17,.14)';x.lineWidth=2;x.strokeRect(12,12,w-24,h-24);
-    x.fillStyle='#b8322f';x.fillRect(0,0,w,8);
+  /* One palette and one canvas setup for every roadside sign, so the boards read as one
+     printed family instead of a handful of slightly different panels. The canvas is
+     supersampled on capable devices and filtered with full anisotropy, which is what keeps
+     the type smooth as you pass a board at an angle rather than going soft or jagged. */
+  const PAPERC='#f4efe6',INK='#1a1712',MUTE='#6f685c',REDC='#b8322f';
+  const SIGN_SS=LOW?1:2;
+  function signCtx(w,h){const c=document.createElement('canvas');c.width=w*SIGN_SS;c.height=h*SIGN_SS;const x=c.getContext('2d');x.scale(SIGN_SS,SIGN_SS);return[c,x]}
+  function signTex(c){const t=new THREE.CanvasTexture(c);t.anisotropy=16;t.minFilter=THREE.LinearMipmapLinearFilter;t.magFilter=THREE.LinearFilter;
+    if('colorSpace' in t&&THREE.SRGBColorSpace)t.colorSpace=THREE.SRGBColorSpace;else if('encoding' in t&&THREE.sRGBEncoding)t.encoding=THREE.sRGBEncoding;return t}
+  const track=(x,px)=>{if('letterSpacing' in x)x.letterSpacing=px+'px'};
+  function capTex(eye,line,sub){const w=1024,h=224;const [c,x]=signCtx(w,h);
+    x.fillStyle=PAPERC;x.fillRect(0,0,w,h);
+    x.fillStyle=REDC;x.fillRect(0,0,w,6);
     x.textBaseline='middle';x.textAlign='left';
-    if(eye){x.fillStyle='#b8322f';x.font=CAPM.replace('%d',26);x.fillText(eye.toUpperCase(),40,50,w-80)}
-    x.fillStyle='#191611';let fs=78;x.font=CAPS.replace('%d',fs);
-    while(x.measureText(line).width>w-80&&fs>32){fs-=3;x.font=CAPS.replace('%d',fs)}
-    x.fillText(line,40,eye?(sub?122:128):(sub?112:118));
-    if(sub){x.fillStyle='#7d776b';x.font=CAPM.replace('%d',24);x.fillText(sub.toUpperCase(),40,186,w-80)}
-    const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+    if(eye){track(x,1.5);x.fillStyle=REDC;x.font=CAPM.replace('%d',24);x.fillText(eye.toUpperCase(),44,54,w-88);track(x,0)}
+    x.fillStyle=INK;let fs=76;x.font=CAPS.replace('%d',fs);
+    while(x.measureText(line).width>w-88&&fs>32){fs-=3;x.font=CAPS.replace('%d',fs)}
+    x.fillText(line,44,eye?(sub?124:130):(sub?112:118));
+    if(sub){track(x,1.5);x.fillStyle=MUTE;x.font=CAPM.replace('%d',22);x.fillText(sub.toUpperCase(),44,188,w-88);track(x,0)}
+    return signTex(c)}
   /* Every chapter gets the same board and the board carries four things and no more:
      the chapter number, the title, the hook line from the bible, and the key stat. The
      story itself is told in the overlay as you pass, so no board is ever a wall of text. */
-  function chapTex(ch,name,hook,stat){const w=1024,h=368,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#f3eee4';x.fillRect(0,0,w,h);
-    x.strokeStyle='rgba(25,22,17,.15)';x.lineWidth=2;x.strokeRect(14,14,w-28,h-28);
-    x.fillStyle='#b8322f';x.fillRect(0,0,w,11);
+  function chapTex(ch,name,hook,stat){const w=1024,h=368;const [c,x]=signCtx(w,h);
+    x.fillStyle=PAPERC;x.fillRect(0,0,w,h);
+    x.fillStyle=REDC;x.fillRect(0,0,w,8);
     x.textBaseline='middle';x.textAlign='left';
-    x.fillStyle='#b8322f';x.font=CAPM.replace('%d',32);x.fillText('CHAPTER '+ch,44,70);
-    x.fillStyle='#191611';let fs=86;x.font=CAPS.replace('%d',fs);
+    track(x,2);x.fillStyle=REDC;x.font=CAPM.replace('%d',30);x.fillText('CHAPTER '+ch,44,72);track(x,0);
+    x.fillStyle=INK;let fs=86;x.font=CAPS.replace('%d',fs);
     while(x.measureText(name.toUpperCase()).width>w-88&&fs>30){fs-=3;x.font=CAPS.replace('%d',fs)}
-    x.fillText(name.toUpperCase(),44,146);
+    x.fillText(name.toUpperCase(),44,150);
     /* The hook is the line that has to land at speed, so it wraps onto a second line rather
        than shrinking away to nothing — a long quote stays the same size as a short one. */
-    if(hook){let hs=42,ln=[];
+    if(hook){let hs=40,ln=[];
       for(;;){x.font='italic '+CAPS.replace('%d',hs);
         ln=[];let cur='';hook.split(' ').forEach(word=>{const t=cur?cur+' '+word:word;
           if(x.measureText(t).width>w-88&&cur){ln.push(cur);cur=word}else cur=t});if(cur)ln.push(cur);
         if(ln.length<=2||hs<=26)break;hs-=2}
-      x.fillStyle='#5c564b';
-      ln.slice(0,2).forEach((t,i)=>x.fillText(t,44,210+i*(hs+10)));}
-    if(stat){x.fillStyle='#191611';x.fillRect(38,290,w-76,56);x.fillStyle='#b8322f';x.fillRect(38,290,7,56);
-      x.fillStyle='#f3eee4';let ss=32;x.font=CAPM.replace('%d',ss);
-      while(x.measureText(stat).width>w-128&&ss>15){ss-=1;x.font=CAPM.replace('%d',ss)}
-      x.fillText(stat,64,318)}
-    const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+      x.fillStyle=MUTE;
+      ln.slice(0,2).forEach((t,i)=>x.fillText(t,44,214+i*(hs+10)));}
+    /* The key stat: a hairline divider and a small red marker instead of a heavy black box —
+       it still reads as the headline number without weighing the board down. */
+    if(stat){const sy=316;
+      x.strokeStyle='rgba(26,23,18,.13)';x.lineWidth=1.5;x.beginPath();x.moveTo(44,sy-26);x.lineTo(w-44,sy-26);x.stroke();
+      x.fillStyle=REDC;x.fillRect(44,sy-10,14,20);
+      x.fillStyle=INK;let ss=30;x.font=CAPM.replace('%d',ss);
+      while(x.measureText(stat).width>w-140&&ss>15){ss-=1;x.font=CAPM.replace('%d',ss)}
+      x.fillText(stat,72,sy)}
+    return signTex(c)}
   const CHAPM=new THREE.MeshBasicMaterial({side:THREE.DoubleSide});
   /* These two used to be positioned by their CENTRE at a hardcoded height, which ignored
      how tall the caption itself is — so on every photo board the caption's bottom edge sank
@@ -1827,21 +1839,21 @@ addEventListener('scroll',mcta,{passive:true});
   const beatPanelG=new THREE.BoxGeometry(4.6,1.3,.16),beatFaceG=new THREE.PlaneGeometry(4.4,1.14),beatPostG=new THREE.BoxGeometry(.15,1,.15);
   const markPanelG=new THREE.BoxGeometry(5.4,2.3,.2),markFaceG=new THREE.PlaneGeometry(5.2,2.14),markPostG=new THREE.BoxGeometry(.2,1,.2);
   const markRuleG=new THREE.BoxGeometry(.22,2.3,.22);
-  function beatTex(txt){const w=512,h=128,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#f3eee4';x.fillRect(0,0,w,h);x.fillStyle='#b8322f';x.fillRect(0,0,9,h);
-    x.fillStyle='#191611';x.textAlign='center';x.textBaseline='middle';
-    let fs=54;x.font=CAPS.replace('%d',fs);
-    while(x.measureText(txt).width>w-52&&fs>22){fs-=2;x.font=CAPS.replace('%d',fs)}
-    x.fillText(txt,w/2+4,h/2+2);
-    const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
-  function markTex(eye,name){const w=512,h=224,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
-    x.fillStyle='#f2eee6';x.fillRect(0,0,w,h);x.fillStyle='#b8322f';x.fillRect(0,0,w,8);
+  function beatTex(txt){const w=512,h=128;const [c,x]=signCtx(w,h);
+    x.fillStyle=PAPERC;x.fillRect(0,0,w,h);x.fillStyle=REDC;x.fillRect(0,0,7,h);
+    x.fillStyle=INK;x.textAlign='center';x.textBaseline='middle';
+    let fs=52;x.font=CAPS.replace('%d',fs);
+    while(x.measureText(txt).width>w-56&&fs>22){fs-=2;x.font=CAPS.replace('%d',fs)}
+    x.fillText(txt,w/2+3,h/2+2);
+    return signTex(c)}
+  function markTex(eye,name){const w=512,h=224;const [c,x]=signCtx(w,h);
+    x.fillStyle=PAPERC;x.fillRect(0,0,w,h);x.fillStyle=REDC;x.fillRect(0,0,w,7);
     x.textAlign='center';x.textBaseline='middle';
-    x.fillStyle='#8a857b';x.font=CAPM.replace('%d',26);x.fillText(eye.toUpperCase(),w/2,68,w-48);
-    x.fillStyle='#15140f';let fs=66;x.font=CAPS.replace('%d',fs);
+    track(x,2);x.fillStyle=MUTE;x.font=CAPM.replace('%d',24);x.fillText(eye.toUpperCase(),w/2,72,w-56);track(x,0);
+    x.fillStyle=INK;let fs=66;x.font=CAPS.replace('%d',fs);
     while(x.measureText(name).width>w-56&&fs>26){fs-=2;x.font=CAPS.replace('%d',fs)}
-    x.fillText(name,w/2,146,w-48);
-    const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
+    x.fillText(name,w/2,150,w-56);
+    return signTex(c)}
   /* Nothing in a run is allowed to end up in the water, so a side that lands in the pond
      flips to the other shoulder rather than sinking. */
   const wetAt=(u,side,d)=>{const q=faceAt(u,side,d,0);return Math.hypot(q.x-POND.x,q.z-POND.z)<POND.r+4};
