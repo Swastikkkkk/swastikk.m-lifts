@@ -1283,6 +1283,7 @@ addEventListener('scroll',mcta,{passive:true});
   function brHAt(u){if(u<=U_YARD)return BR_H;
     return BR_H+(PEAK_H-BR_H)*brSmooth(Math.min(1,(u-U_YARD)/Math.max(.001,U_TOP-U_YARD)))}
   const bAt=u=>{const uc=Math.max(0,Math.min(1,u));const p=brCurve.getPointAt(uc),tg=brCurve.getTangentAt(Math.max(.001,Math.min(.999,uc)));p.y=brHAt(uc);return {p,tg,n:new THREE.Vector3(-tg.z,0,tg.x)}};
+  let ROADD=99;
   const SM=t=>t<=0?0:t>=1?1:t*t*(3-2*t);
   const LRP=(a,b,t)=>a+(b-a)*t;
   /* ---------- value noise + procedural textures (no external assets: single-file site) ---------- */
@@ -1383,7 +1384,7 @@ addEventListener('scroll',mcta,{passive:true});
     const de=Math.max(Math.abs(x),Math.abs(z));
     if(de>116*MK*LAND){const t=SM((de-116*MK*LAND)/(32*MK));h+=t*(18+(fbm2(x*.04+7,z*.04-3)-.5)*20)}
     // the road corridor stays true to the spline, and wins over everything
-    const rn=roadNear(x,z),fw=1-SM((rn.d-9.8)/30);
+    const rn=roadNear(x,z),fw=1-SM((rn.d-9.8)/30);ROADD=rn.d;
     if(fw>0)h=h*(1-fw)+(rn.ring?BR_H:rn.branch?brHAt(rn.u):hAt(rn.u))*fw;
     for(let i=0;i<PADS.length;i++){const p=PADS[i],dd=Math.hypot(p.x-x,p.z-z);
       if(dd<p.f){const w=1-SM((dd-p.r)/(p.f-p.r));h=h*(1-w)+p.y*w}}
@@ -1392,10 +1393,10 @@ addEventListener('scroll',mcta,{passive:true});
   const terrainM=new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,map:grainTex(160,.07,Math.round(120*MK*LAND),.55)});
   const HF=(function(){
     const nx=Math.round(WS*2/ES)+1,nz=nx,minX=-WS,maxZ=WS;
-    const data=[],slope=new Float32Array(nx*nz);
+    const data=[],slope=new Float32Array(nx*nz),rdep=new Float32Array(nx*nz).fill(99);
     let lo=1e9;
     for(let i=0;i<nx;i++){const row=new Array(nz),x=minX+i*ES;
-      for(let j=0;j<nz;j++){const h=terrainH(x,maxZ-j*ES);row[j]=h;if(h<lo)lo=h}
+      for(let j=0;j<nz;j++){const h=terrainH(x,maxZ-j*ES);row[j]=h;rdep[i*nz+j]=ROADD;if(h<lo)lo=h}
       data.push(row)}
     /* cannon builds each heightfield cell as a convex pillar whose base is pinned at local -1, so any
        sample at or below that collapses the pillar and the solver spits out NaN the moment a wheel
@@ -1408,7 +1409,7 @@ addEventListener('scroll',mcta,{passive:true});
     body.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);body.position.set(minX,-OFF,maxZ);world.addBody(body);
     const pos=new Float32Array(nx*nz*3),col=new Float32Array(nx*nz*3),uv=new Float32Array(nx*nz*2),idx=[];
     for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const k=i*nz+j;
-      pos[k*3]=minX+i*ES;pos[k*3+1]=data[i][j]-OFF-.02;pos[k*3+2]=maxZ-j*ES;
+      pos[k*3]=minX+i*ES;pos[k*3+1]=data[i][j]-OFF-.02-.34*(1-SM((rdep[k]-5.5)/4.5));pos[k*3+2]=maxZ-j*ES;
       uv[k*2]=i/(nx-1);uv[k*2+1]=1-j/(nz-1);
       const hx=(data[Math.min(nx-1,i+1)][j]-data[Math.max(0,i-1)][j])/(2*ES),hz=(data[i][Math.min(nz-1,j+1)]-data[i][Math.max(0,j-1)])/(2*ES);
       slope[k]=Math.hypot(hx,hz)}
