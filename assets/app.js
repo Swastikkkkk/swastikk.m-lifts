@@ -1478,7 +1478,8 @@ addEventListener('scroll',mcta,{passive:true});
     x.fillStyle='#b8322f';x.fillRect(0,0,16,32);x.fillStyle='#ece7db';x.fillRect(0,32,16,32);
     const t=new THREE.CanvasTexture(c);t.wrapS=THREE.ClampToEdgeWrapping;t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.NearestFilter;t.anisotropy=8;return t}
   function strip(w,yo,mat){const pos=[],idx=[],uv=[];for(let i=0;i<=N;i++){const {p,n}=at(i/N);n.multiplyScalar(w/2);
-      pos.push(p.x-n.x,p.y+yo,p.z-n.z,p.x+n.x,p.y+yo,p.z+n.z);uv.push(0,i/N*ROAD_REP,1,i/N*ROAD_REP);
+      const hy=Math.max(p.y,HF.h(p.x-n.x,p.z-n.z),HF.h(p.x+n.x,p.z+n.z),HF.h(p.x,p.z))+yo+.05;
+      pos.push(p.x-n.x,hy,p.z-n.z,p.x+n.x,hy,p.z+n.z);uv.push(0,i/N*ROAD_REP,1,i/N*ROAD_REP);
       if(i<N){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
@@ -1492,7 +1493,7 @@ addEventListener('scroll',mcta,{passive:true});
      HF.h per vertex means the road cannot disagree with the ground by construction. */
   function stripB(w,yo,mat){const pos=[],idx=[],uv=[];for(let i=0;i<=BN;i++){const {p,n}=bAt(i/BN);n.multiplyScalar(w/2);
       const lx=p.x-n.x,lz=p.z-n.z,rx=p.x+n.x,rz=p.z+n.z;
-      pos.push(lx,HF.h(lx,lz)+yo,lz,rx,HF.h(rx,rz)+yo,rz);uv.push(0,i/BN*BR_REP,1,i/BN*BR_REP);
+      const hy=Math.max(HF.h(lx,lz),HF.h(rx,rz),HF.h((lx+rx)/2,(lz+rz)/2))+yo+.05;pos.push(lx,hy,lz,rx,hy,rz);uv.push(0,i/BN*BR_REP,1,i/BN*BR_REP);
       if(i<BN){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
@@ -1519,7 +1520,7 @@ addEventListener('scroll',mcta,{passive:true});
     for(let i=0;i<=SEG;i++){const a=i/SEG*Math.PI*2,ca=Math.cos(a),sa=Math.sin(a);
       const ix=RING.x+ca*(RING.r-w/2),iz=RING.z+sa*(RING.r-w/2);
       const ox=RING.x+ca*(RING.r+w/2),oz=RING.z+sa*(RING.r+w/2);
-      pos.push(ix,HF.h(ix,iz)+yo,iz,ox,HF.h(ox,oz)+yo,oz);
+      const hy=Math.max(HF.h(ix,iz),HF.h(ox,oz),HF.h((ix+ox)/2,(iz+oz)/2))+yo+.05;pos.push(ix,hy,iz,ox,hy,oz);
       uv.push(0,i/SEG*10,1,i/SEG*10);
       if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
@@ -3571,7 +3572,7 @@ addEventListener('scroll',mcta,{passive:true});
       const q=chassisB.quaternion,yawC=Math.atan2(2*(q.w*q.y+q.x*q.z),1-2*(q.y*q.y+q.z*q.z));let rel=yawT-yawC;rel=Math.atan2(Math.sin(rel),Math.cos(rel));
       objArrow.style.transform='rotate('+(-rel*180/Math.PI)+'deg)';
       if(frameN%6===0)objTxt.textContent=nx?('Next · Chapter '+nx.chapter+' · '+nx.name+' · '+Math.round(dist)+' m'):('Finish · Trial gate · '+Math.round(dist)+' m');
-      const tg=at(progU).tg;fwd.set(0,0,1).applyQuaternion(car.quaternion);wrongEl.classList.toggle('on',sp>4&&(fwd.x*tg.x+fwd.z*tg.z)<-.5&&dist>22&&!inPond)}
+      const tg=at(progU).tg;fwd.set(0,0,1).applyQuaternion(car.quaternion);wrongEl.classList.remove('on')}
     stepWx(Math.min(.05,dt));
     fwd.set(0,0,1).applyQuaternion(car.quaternion);fwd.y=0;fwd.normalize();
     /* Camera. Every smoothing constant here is an exponential on dt rather than a fixed

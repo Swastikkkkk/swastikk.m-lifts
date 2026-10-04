@@ -1163,6 +1163,16 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
   #dreadlist img{grid-column:1!important;grid-row:auto;max-height:46svh;max-width:min(360px,86%)!important;margin:22px auto 0!important;justify-self:center}
   .rd-dots{right:8px;gap:8px}.rd-dots button{width:6px;height:6px}
 }
+
+/* ===== drive HUD polish: one glass style, readable over any terrain ===== */
+#dobj,#dmiss,.dbl,#dstory .stx{background:rgba(10,10,9,.55);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(242,238,230,.14);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+#dobj{top:calc(16px + env(safe-area-inset-top,0px));padding:8px 16px 8px 9px;border-radius:999px}
+#dmiss{border-left:3px solid #d4a83a;bottom:calc(64px + env(safe-area-inset-bottom,0px));padding:11px 15px;max-width:300px}
+#dmiss .mh{font-size:19px}
+.dbl{border-radius:999px}
+#dstory .stx{border-left:3px solid var(--paper)}
+#dwrong{display:none!important}
+#dspeed,#dkg,#dlift b{text-shadow:0 2px 14px rgba(0,0,0,.55)}
 </style>
 
 </head>
