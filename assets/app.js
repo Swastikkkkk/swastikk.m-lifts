@@ -1458,7 +1458,7 @@ addEventListener('scroll',mcta,{passive:true});
       const r=R0+noise2(Math.cos(a)*4,Math.sin(a)*4)*22;
       pos.push(Math.cos(a)*r,-4,Math.sin(a)*r,Math.cos(a)*r,hh,Math.sin(a)*r);
       col.push(.20,.21,.25,.30,.32,.38);
-      if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
+      if(i<SEG){const k=i*2;idx.push(k,k+2,k+1,k+1,k+2,k+3)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.DoubleSide,fog:true,transparent:true,opacity:.9,depthWrite:false}));m.renderOrder=-1;S.add(m);return m})();
   function ridgeTint(t){const c=farRidge.geometry.attributes.color,a=c.array;
@@ -1470,7 +1470,7 @@ addEventListener('scroll',mcta,{passive:true});
      distance instead of being a scatter of floating quads. */
   const ROAD_REP=Math.round(curve.getLength()/12);
   function roadTex(){const W=256,H=512,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
-    x.fillStyle='#303134';x.fillRect(0,0,W,H);const im=x.getImageData(0,0,W,H),d=im.data;
+    x.fillStyle='#212225';x.fillRect(0,0,W,H);const im=x.getImageData(0,0,W,H),d=im.data;
     for(let jj=0;jj<H;jj++)for(let ii=0;ii<W;ii++){const k=(jj*W+ii)*4,u=ii/W;
       let n=(hash2(ii*1.73+.5,jj*1.31+.5)-.5)*9+(noise2(ii*.045,jj*.045)-.5)*6+(noise2(ii*.19,jj*.19)-.5)*3;
       n-=(Math.exp(-((u-.27)**2)/.0035)+Math.exp(-((u-.73)**2)/.0035))*6;d[k]+=n;d[k+1]+=n;d[k+2]+=n+1}
@@ -1501,9 +1501,9 @@ addEventListener('scroll',mcta,{passive:true});
       if(i<BN){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
-  roadM.color.setHex(0xffffff);roadM.map=roadTex();edgeM.color.setHex(0x6d685e);
+  roadM.color.setHex(0xffffff);roadM.map=roadTex();edgeM.color.setHex(0x3b3a37);
   edgeM.map=grainTex(64,.12,1,.6);edgeM.map.repeat.set(3,1);
-  strip(7.6,.04,edgeM);strip(5.8,.09,roadM);
+  strip(6.6,.04,edgeM);strip(5.8,.09,roadM);
   stripB(7,.04,edgeM);stripB(5.2,.09,roadM);
   /* kerbs on the bends, so the tight corners read before you are in them */
   (function(){const R=[],mat=new THREE.MeshLambertMaterial({map:curbTex()});
@@ -1526,7 +1526,7 @@ addEventListener('scroll',mcta,{passive:true});
       const ox=RING.x+ca*(RING.r+w/2),oz=RING.z+sa*(RING.r+w/2);
       const hy=Math.max(HF.h(ix,iz),HF.h(ox,oz),HF.h((ix+ox)/2,(iz+oz)/2))+yo+.05;pos.push(ix,hy,iz,ox,hy,oz);
       uv.push(0,i/SEG*10,1,i/SEG*10);
-      if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
+      if(i<SEG){const k=i*2;idx.push(k,k+2,k+1,k+1,k+2,k+3)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
     g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
@@ -2490,7 +2490,7 @@ addEventListener('scroll',mcta,{passive:true});
     // windscreen and rear glass follow the cabin curve, lifted just off it
     const strip=(a,c,b,t0,t1,hw)=>{const pos=[],idx=[],SEG=10,q=new THREE.QuadraticBezierCurve(a,c,b);
       for(let i=0;i<=SEG;i++){const t=t0+(t1-t0)*i/SEG,p=q.getPoint(t),d=q.getTangent(t),nz=d.y,ny=-d.x,off=cb*.8+.012;
-        const y=p.y+ny*off,z=p.x+nz*off;pos.push(-hw,y,z,hw,y,z);if(i<SEG){const k=i*2;idx.push(k,k+1,k+2,k+1,k+3,k+2)}}
+        const y=p.y+ny*off,z=p.x+nz*off;pos.push(-hw,y,z,hw,y,z);if(i<SEG){const k=i*2;idx.push(k,k+2,k+1,k+1,k+2,k+3)}}
       const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));gg.setIndex(idx);gg.computeVertexNormals();return tumble(gg)};
     const hw=cw/2-cb-.05;if(!o.ev)body.add(new THREE.Mesh(strip(P0,C0,P1,.15,.92,hw),carGlassM));body.add(new THREE.Mesh(strip(P2,C2,P3,.1,.9,hw),carGlassM));
     // side windows: flat panes on the cabin flank, split by the B pillar
