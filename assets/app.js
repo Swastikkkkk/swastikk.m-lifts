@@ -133,7 +133,12 @@ function buildLifter(){
 
 /* ===== INTRO ===== */
 const intro=$('#intro');
-function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.add('gone');lockScroll(false);if(lenis){lenis.start();lenis.resize()}heroIn();G&&ScrollTrigger.refresh()}
+/* heavy scenes (the drive world, the guide) are built only after the intro has played,
+   so building them can never freeze the deadlift or the hero reveal */
+let __introRes;window.__introDone=new Promise(r=>__introRes=r);
+const __idle=(fn,t)=>('requestIdleCallback' in window)?requestIdleCallback(()=>fn(),{timeout:t||2000}):setTimeout(fn,200);
+const __loadScript=src=>new Promise(r=>{const s=document.createElement('script');s.src=src;s.onload=s.onerror=()=>r();document.head.appendChild(s)});
+function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.add('gone');setTimeout(()=>__introRes(),2800);lockScroll(false);if(lenis){lenis.start();lenis.resize()}heroIn();G&&ScrollTrigger.refresh()}
 (function(){
   let seen=false;try{sessionStorage.setItem('sl_intro','1')}catch(e){}
   $('#skip').onclick=()=>{G?gsap.to(intro,{yPercent:-100,duration:.7,ease:'expo.inOut',onComplete:endIntro}):endIntro()};
@@ -592,6 +597,8 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
       C.lookAt(0,.70+e*.48,.02);
       R.render(S,C);
     }
+    /* compile every shader before the timeline runs: the first-frame compile was the hitch you saw mid-lift */
+    try{R.compile(S,C)}catch(e){}
     frame();
     three={draw,stop(){running=false;cancelAnimationFrame(raf);
       // give the GPU its context back; nothing here is drawn again
@@ -602,7 +609,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
   /* hold the exit curtain until the hero photo is decoded, so it never pops in after the lift */
   const hi=$('#heroImg');
   const heroReady=(hi&&!(hi.complete&&hi.naturalWidth))?new Promise(r=>{hi.addEventListener('load',r,{once:true});hi.addEventListener('error',r,{once:true});setTimeout(r,5000)}).then(()=>hi.decode?hi.decode().catch(()=>{}):0):null;
-  const itl=gsap.timeline({delay:.15,onComplete:endIntro})
+  const itl=gsap.timeline({paused:true,onComplete:endIntro})
     .to('#iplate',{scale:1,opacity:1,rotate:0,rotateY:0,duration:1,ease:'power3.out'})
     .to('.intro-n',{opacity:1,scale:1,y:0,duration:.6,ease:'back.out(1.6)'},'-=.75')
     .to(o,{v:230,p:100,duration:2.6,ease:'none',onUpdate(){
@@ -616,6 +623,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
     .to(flash,{opacity:0,duration:.4,ease:'power2.out'},'>')
     .call(()=>{if(heroReady){itl.pause();heroReady.then(()=>itl.resume())}})
     .to(intro,{yPercent:-100,duration:.85,ease:'expo.inOut',onStart(){three&&three.stop()}},'+=.35');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(()=>itl.play(),60)));
 })();
 
 /* ===== HERO ===== */
@@ -1501,7 +1509,9 @@ addEventListener('scroll',mcta,{passive:true});
       if(i<BN){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
-  roadM.color.setHex(0xffffff);roadM.map=roadTex();edgeM.color.setHex(0x3b3a37);
+  roadM.color.setHex(0xffffff);roadM.map=roadTex();
+  /* tarmac always wins the depth test against the ground under it, on any GPU's depth precision */
+  roadM.polygonOffset=edgeM.polygonOffset=true;roadM.polygonOffsetFactor=-2;roadM.polygonOffsetUnits=-4;edgeM.polygonOffsetFactor=-1;edgeM.polygonOffsetUnits=-2;edgeM.color.setHex(0x3b3a37);
   edgeM.map=grainTex(64,.12,1,.6);edgeM.map.repeat.set(3,1);
   strip(6.6,.04,edgeM);strip(5.8,.09,roadM);
   stripB(7,.04,edgeM);stripB(5.2,.09,roadM);
@@ -3729,11 +3739,13 @@ addEventListener('scroll',mcta,{passive:true});
 };
   /* sign canvases are painted once, so Poppins has to be in before they are built */
   const __f=document.fonts&&document.fonts.load?Promise.race([Promise.all(['500 40px Poppins','600 40px Poppins','700 40px Poppins'].map(f=>document.fonts.load(f))),new Promise(r=>setTimeout(r,2500))]):Promise.resolve();
-  __f.catch(()=>{}).then(__boot);
+  Promise.all([__f.catch(()=>{}),window.__introDone])
+    .then(()=>window.CANNON?0:__loadScript('https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js'))
+    .then(()=>__idle(__boot,2500));
 })();
 
 /* ===== GUIDE: cartoon lifter (three.js) ===== */
-(function(){
+const __guideBoot=function(){
   if(!window.THREE||REDUCE||matchMedia('(max-height:560px)').matches)return;
   const wrap=$('#guide'),cv=$('#gc'),bub=$('#bubble');
   let W=cv.clientWidth||180,H=cv.clientHeight||220;
@@ -4025,7 +4037,8 @@ addEventListener('scroll',mcta,{passive:true});
       {threshold:.28}).observe(card)}
   if(intro.classList.contains('gone'))setTimeout(showWhenPastHero,600);
   else{const ob=new MutationObserver(()=>{if(intro.classList.contains('gone')){ob.disconnect();setTimeout(showWhenPastHero,900)}});ob.observe(intro,{attributes:true})}
-})();
+};
+window.__introDone.then(()=>__idle(__guideBoot,1500));
 
 
 /* ===== FORM ===== */
