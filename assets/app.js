@@ -135,7 +135,7 @@ function buildLifter(){
 const intro=$('#intro');
 function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.add('gone');lockScroll(false);if(lenis){lenis.start();lenis.resize()}heroIn();G&&ScrollTrigger.refresh()}
 (function(){
-  let seen=false;try{seen=!!sessionStorage.getItem('sl_intro');sessionStorage.setItem('sl_intro','1')}catch(e){}
+  let seen=false;try{sessionStorage.setItem('sl_intro','1')}catch(e){}
   $('#skip').onclick=()=>{G?gsap.to(intro,{yPercent:-100,duration:.7,ease:'expo.inOut',onComplete:endIntro}):endIntro()};
   if(!G||seen){setTimeout(endIntro,0);return}
   const n=$('#introNum'),l=$('#introL'),flash=$('#iflash'),o={v:0,p:0};
@@ -551,15 +551,15 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
   if(window.THREE){
     const cv=$('#iavatar'),W=cv.clientWidth||280,H=cv.clientHeight||340;
     const R=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
-    R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(W,H,false);
-    R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
+    R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(W,H,false);
+    R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFShadowMap;
     if('outputEncoding' in R)R.outputEncoding=THREE.sRGBEncoding;
     R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.8;
     const S=new THREE.Scene();
     const C=new THREE.PerspectiveCamera(26,W/H,.05,40);
     S.add(new THREE.HemisphereLight(0xdfe8f7,0x3a3228,.34));
     const kl=new THREE.DirectionalLight(0xfff4e2,1.0);kl.position.set(1.9,3.1,2.4);kl.castShadow=true;
-    kl.shadow.mapSize.set(1024,1024);Object.assign(kl.shadow.camera,{left:-1.8,right:1.8,top:2.2,bottom:-.5,near:.4,far:9});
+    kl.shadow.mapSize.set(512,512);Object.assign(kl.shadow.camera,{left:-1.8,right:1.8,top:2.2,bottom:-.5,near:.4,far:9});
     kl.shadow.bias=-.0007;kl.shadow.radius=2.5;S.add(kl);
     /* A back rim is what separates one muscle group from the next on fair skin; without it
        the whole body flattens into a single cream-coloured shape under the key. */
@@ -886,7 +886,7 @@ addEventListener('scroll',mcta,{passive:true});
 
 
 /* ===== DRIVE: story world with physics (three.js + cannon.js) ===== */
-(function(){
+(function(){const __boot=function(){
   const MOB=matchMedia('(max-width:900px)').matches||matchMedia('(pointer:coarse)').matches;
   if(!MOB&&(!window.THREE||!window.CANNON))return;
   const PH={before:$('#bImg').src,flex:$('#aImg').src,dead:$('#heroImg').src,mirror:$('#fImg').src,lock:$('#gLock').src,dbb:$('#gDbb').src,tri:$('#gTri').src,curl:$('#gCurl').src,crowd:$('#gCrowd').src};
@@ -1468,7 +1468,7 @@ addEventListener('scroll',mcta,{passive:true});
   function roadTex(){const W=256,H=512,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
     x.fillStyle='#303134';x.fillRect(0,0,W,H);const im=x.getImageData(0,0,W,H),d=im.data;
     for(let jj=0;jj<H;jj++)for(let ii=0;ii<W;ii++){const k=(jj*W+ii)*4,u=ii/W;
-      let n=(hash2(ii*1.73+.5,jj*1.31+.5)-.5)*22+(noise2(ii*.045,jj*.045)-.5)*16+(noise2(ii*.19,jj*.19)-.5)*7;
+      let n=(hash2(ii*1.73+.5,jj*1.31+.5)-.5)*9+(noise2(ii*.045,jj*.045)-.5)*6+(noise2(ii*.19,jj*.19)-.5)*3;
       n-=(Math.exp(-((u-.27)**2)/.0035)+Math.exp(-((u-.73)**2)/.0035))*6;d[k]+=n;d[k+1]+=n;d[k+2]+=n+1}
     x.putImageData(im,0,0);
     x.fillStyle='rgba(236,232,222,.93)';x.fillRect(W*.045,0,W*.03,H);x.fillRect(W*(1-.045-.03),0,W*.03,H);
@@ -1588,7 +1588,7 @@ addEventListener('scroll',mcta,{passive:true});
   (function(){if(LOW)return;const T=[];let seed=709;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
     while(T.length<1200&&tries<30000){tries++;const x=(rnd()-.5)*(372*MK*LAND),z=(rnd()-.5)*(372*MK*LAND);if(zoneHit(x,z,2))continue;const rd=roadNear(x,z).d;
       const pd=Math.hypot(x-POND.x,z-POND.z);
-      if(!(rd<20||pd<POND.r*1.9))continue;if(rd<4.2)continue;if(pd<pondR(x,z)*1.05)continue;
+      if(!(rd<20||pd<POND.r*1.9))continue;if(rd<8)continue;if(pd<pondR(x,z)*1.05)continue;
       const h=HF.h(x,z);if(HF.slope(x,z)>1.15)continue;if(h<-.2)continue;
       T.push([x,h,z,.5+rnd()*.7,rnd()*6.3])}
     const g=new THREE.PlaneGeometry(.42,.44);g.translate(0,.2,0);
@@ -1693,8 +1693,8 @@ addEventListener('scroll',mcta,{passive:true});
      line big, and the date/place small underneath. Printed on warm paper with ink type and
      a thin keyline — the same placard the chapter markers use — so it reads as a poster bolted
      to a frame rather than a dark screen floating in a field, and stays legible at night. */
-  const CAPS='600 %dpx -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif';
-  const CAPM='600 %dpx ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace';
+  const CAPS='600 %dpx "Poppins",-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif';
+  const CAPM='500 %dpx "Poppins",-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif';
   /* One palette and one canvas setup for every roadside sign, so the boards read as one
      printed family instead of a handful of slightly different panels. The canvas is
      supersampled on capable devices and filtered with full anisotropy, which is what keeps
@@ -3722,6 +3722,10 @@ addEventListener('scroll',mcta,{passive:true});
    startBtn.addEventListener('pointerenter',warm,{once:true});}
   window.__drive={enter:()=>startBtn.click(),active:()=>active,near:()=>near,next:()=>nextStation()};
   window.__dbg={R,S,quality:()=>({tier:'Ultra',dpr:R.getPixelRatio()}),chassisB,veh,key:()=>key,active:()=>active,endCine,interact,toggleMap,tp:(u)=>{const {p,tg}=at(u);chassisB.position.set(p.x,p.y+1.3,p.z);chassisB.velocity.set(0,0,0);chassisB.angularVelocity.set(0,0,0);chassisB.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),Math.atan2(tg.x,tg.z));progU=u},tpXY:(x,z)=>{chassisB.position.set(x,HF.h(x,z)+1.4,z);chassisB.velocity.set(0,0,0);chassisB.angularVelocity.set(0,0,0);chassisB.force.set(0,0,0);chassisB.torque.set(0,0,0)},hAt,C,freeze:v=>{cineOn=!!v},car,critters,birds,ducks,rings,rockPts,HF,anims,JOURNEY,traffic,startRace:()=>startRace(),lapState:()=>({raceMode,lapArmed,lapProg,lapNo,lapVoid,bestMs}),missions:MISSIONS,openBoard,sub:()=>sub};
+};
+  /* sign canvases are painted once, so Poppins has to be in before they are built */
+  const __f=document.fonts&&document.fonts.load?Promise.race([Promise.all(['500 40px Poppins','600 40px Poppins','700 40px Poppins'].map(f=>document.fonts.load(f))),new Promise(r=>setTimeout(r,2500))]):Promise.resolve();
+  __f.catch(()=>{}).then(__boot);
 })();
 
 /* ===== GUIDE: cartoon lifter (three.js) ===== */
