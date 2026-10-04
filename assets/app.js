@@ -587,7 +587,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
       /* camera: start almost down at bar height so the weight reads as heavy, then rise with
          him. It used to sit at 1.5 looking down, which foreshortened the plates into a barrel
          and hid the hinge. Pulled back a little as well, with a longer lens, to flatten that. */
-      const e=SMS(curP),yaw=-.52+e*.26,rad=6.48-e*.52,cy=.98+e*.84;
+      const e=SMS(curP),yaw=-.52+e*.26,rad=7.7-e*.5,cy=.98+e*.84;
       C.position.set(Math.sin(yaw)*rad,cy,Math.cos(yaw)*rad);
       C.lookAt(0,.70+e*.48,.02);
       R.render(S,C);
@@ -1388,6 +1388,9 @@ addEventListener('scroll',mcta,{passive:true});
     if(fw>0)h=h*(1-fw)+(rn.ring?BR_H:rn.branch?brHAt(rn.u):hAt(rn.u))*fw;
     for(let i=0;i<PADS.length;i++){const p=PADS[i],dd=Math.hypot(p.x-x,p.z-z);
       if(dd<p.f){const w=1-SM((dd-p.r)/(p.f-p.r));h=h*(1-w)+p.y*w}}
+    /* pads flatten the ground round a board, and on a slope that used to lift the field over the tarmac;
+       the road gets the last word within its own width */
+    {const fw2=1-SM((rn.d-6)/6);if(fw2>0)h=h*(1-fw2)+(rn.ring?BR_H:rn.branch?brHAt(rn.u):hAt(rn.u))*fw2}
     return h}
   const rockPts=[];
   const terrainM=new THREE.MeshLambertMaterial({color:0xffffff,vertexColors:true,map:grainTex(160,.07,Math.round(120*MK*LAND),.55)});
