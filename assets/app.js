@@ -599,7 +599,10 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
   }
   gsap.set('#iplate',{scale:.7,opacity:0,rotate:-10,rotateY:-25});
   gsap.set('.intro-n',{opacity:0,scale:.82,y:10});
-  gsap.timeline({delay:.15,onComplete:endIntro})
+  /* hold the exit curtain until the hero photo is decoded, so it never pops in after the lift */
+  const hi=$('#heroImg');
+  const heroReady=(hi&&!(hi.complete&&hi.naturalWidth))?new Promise(r=>{hi.addEventListener('load',r,{once:true});hi.addEventListener('error',r,{once:true});setTimeout(r,5000)}).then(()=>hi.decode?hi.decode().catch(()=>{}):0):null;
+  const itl=gsap.timeline({delay:.15,onComplete:endIntro})
     .to('#iplate',{scale:1,opacity:1,rotate:0,rotateY:0,duration:1,ease:'power3.out'})
     .to('.intro-n',{opacity:1,scale:1,y:0,duration:.6,ease:'back.out(1.6)'},'-=.75')
     .to(o,{v:230,p:100,duration:2.6,ease:'none',onUpdate(){
@@ -611,6 +614,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
     .to('.intro-n',{scale:1,duration:.3,ease:'elastic.out(1,.5)'})
     .to(flash,{opacity:.85,duration:.07,ease:'none'},'<')
     .to(flash,{opacity:0,duration:.4,ease:'power2.out'},'>')
+    .call(()=>{if(heroReady){itl.pause();heroReady.then(()=>itl.resume())}})
     .to(intro,{yPercent:-100,duration:.85,ease:'expo.inOut',onStart(){three&&three.stop()}},'+=.35');
 })();
 
