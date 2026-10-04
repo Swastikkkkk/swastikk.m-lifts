@@ -587,7 +587,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
       /* camera: start almost down at bar height so the weight reads as heavy, then rise with
          him. It used to sit at 1.5 looking down, which foreshortened the plates into a barrel
          and hid the hinge. Pulled back a little as well, with a longer lens, to flatten that. */
-      const e=SMS(curP),yaw=-.52+e*.26,rad=6.48-e*.52,cy=.98+e*.84;
+      const e=SMS(curP),yaw=-.52+e*.26,rad=7.7-e*.5,cy=.98+e*.84;
       C.position.set(Math.sin(yaw)*rad,cy,Math.cos(yaw)*rad);
       C.lookAt(0,.70+e*.48,.02);
       R.render(S,C);
