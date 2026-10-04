@@ -76,9 +76,11 @@
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
         data-cf-beacon='{"token": ""}'></script>
 
+<link rel="preload" as="image" href="assets/img/heroImg.jpg" fetchpriority="high">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
 <style>
 :root{
   --ink:#06070b;--ink2:#0c0e13;--line:#1b1f28;
@@ -1161,6 +1163,16 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
   #dreadlist img{grid-column:1!important;grid-row:auto;max-height:46svh;max-width:min(360px,86%)!important;margin:22px auto 0!important;justify-self:center}
   .rd-dots{right:8px;gap:8px}.rd-dots button{width:6px;height:6px}
 }
+
+/* ===== drive HUD polish: one glass style, readable over any terrain ===== */
+#dobj,#dmiss,.dbl,#dstory .stx{background:rgba(10,10,9,.55);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);border:1px solid rgba(242,238,230,.14);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+#dobj{top:calc(16px + env(safe-area-inset-top,0px));padding:8px 16px 8px 9px;border-radius:999px}
+#dmiss{border-left:3px solid #d4a83a;bottom:calc(64px + env(safe-area-inset-bottom,0px));padding:11px 15px;max-width:300px}
+#dmiss .mh{font-size:19px}
+.dbl{border-radius:999px}
+#dstory .stx{border-left:3px solid var(--paper)}
+#dwrong{display:none!important}
+#dspeed,#dkg,#dlift b{text-shadow:0 2px 14px rgba(0,0,0,.55)}
 </style>
 
 </head>
@@ -1337,27 +1349,27 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
 </section>
 <!-- textures used by the drive scene; never painted by the page -->
 <div id="gpix" aria-hidden="true" hidden style="display:none">
-  <img id="gp1" src="assets/img/gp1.jpg" alt="Day one">
-  <img id="gp2" src="assets/img/gp2.jpg" alt="No rules, just reps">
-  <img id="gp3" src="assets/img/gp3.jpg" alt="Curl day">
-  <img id="gp4" src="assets/img/gp4.jpg" alt="Between sessions">
-  <img id="gp5" src="assets/img/gp5.jpg" alt="Pull day">
-  <img id="gp6" src="assets/img/gp6.jpg" alt="Front double biceps">
-  <img id="gp7" src="assets/img/gp7.jpg" alt="Back double biceps">
-  <img id="gp8" src="assets/img/gp8.jpg" alt="Side pose">
-  <img id="gp9" src="assets/img/gp9.jpg" alt="Late night">
-  <img id="gp10" src="assets/img/gp10.jpg" alt="Off-season">
-  <img id="gp11" src="assets/img/gp11.jpg" alt="Leg day">
-  <img id="gp12" src="assets/img/gp12.jpg" alt="Bench, full house">
-  <img id="gp13" src="assets/img/gp13.jpg" alt="On the platform">
-  <img id="gp14" src="assets/img/gp14.jpg" alt="Squat, full house">
-  <img id="gp15" src="assets/img/gp15.jpg" alt="The pull">
-  <img id="gp16" src="assets/img/gp16.jpg" alt="Mask era">
-  <img id="gp17" src="assets/img/gp17.jpg" alt="Between sets">
-  <img id="gp18" src="assets/img/gp18.jpg" alt="Club gym, mask on">
-  <img id="gp19" src="assets/img/gp19.jpg" alt="The 242.5 on the floor">
-  <img id="gp20" src="assets/img/gp20.jpg" alt="Front double biceps">
-  <img id="gp21" src="assets/img/gp21.jpg" alt="Cupping marks, after rehab">
+  <img id="gp1" loading="lazy" decoding="async" src="assets/img/gp1.jpg" alt="Day one">
+  <img id="gp2" loading="lazy" decoding="async" src="assets/img/gp2.jpg" alt="No rules, just reps">
+  <img id="gp3" loading="lazy" decoding="async" src="assets/img/gp3.jpg" alt="Curl day">
+  <img id="gp4" loading="lazy" decoding="async" src="assets/img/gp4.jpg" alt="Between sessions">
+  <img id="gp5" loading="lazy" decoding="async" src="assets/img/gp5.jpg" alt="Pull day">
+  <img id="gp6" loading="lazy" decoding="async" src="assets/img/gp6.jpg" alt="Front double biceps">
+  <img id="gp7" loading="lazy" decoding="async" src="assets/img/gp7.jpg" alt="Back double biceps">
+  <img id="gp8" loading="lazy" decoding="async" src="assets/img/gp8.jpg" alt="Side pose">
+  <img id="gp9" loading="lazy" decoding="async" src="assets/img/gp9.jpg" alt="Late night">
+  <img id="gp10" loading="lazy" decoding="async" src="assets/img/gp10.jpg" alt="Off-season">
+  <img id="gp11" loading="lazy" decoding="async" src="assets/img/gp11.jpg" alt="Leg day">
+  <img id="gp12" loading="lazy" decoding="async" src="assets/img/gp12.jpg" alt="Bench, full house">
+  <img id="gp13" loading="lazy" decoding="async" src="assets/img/gp13.jpg" alt="On the platform">
+  <img id="gp14" loading="lazy" decoding="async" src="assets/img/gp14.jpg" alt="Squat, full house">
+  <img id="gp15" loading="lazy" decoding="async" src="assets/img/gp15.jpg" alt="The pull">
+  <img id="gp16" loading="lazy" decoding="async" src="assets/img/gp16.jpg" alt="Mask era">
+  <img id="gp17" loading="lazy" decoding="async" src="assets/img/gp17.jpg" alt="Between sets">
+  <img id="gp18" loading="lazy" decoding="async" src="assets/img/gp18.jpg" alt="Club gym, mask on">
+  <img id="gp19" loading="lazy" decoding="async" src="assets/img/gp19.jpg" alt="The 242.5 on the floor">
+  <img id="gp20" loading="lazy" decoding="async" src="assets/img/gp20.jpg" alt="Front double biceps">
+  <img id="gp21" loading="lazy" decoding="async" src="assets/img/gp21.jpg" alt="Cupping marks, after rehab">
 </div>
 
 <!-- OFFER -->
