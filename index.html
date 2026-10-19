@@ -507,14 +507,15 @@ footer{position:relative;overflow:hidden}
 #dhud{position:absolute;inset:0;display:none;pointer-events:none;z-index:2}
 #dhud.on{display:block}
 #dhud>*{position:absolute}
+.dtl{display:none}
 .dtl{left:var(--gut);top:calc(18px + env(safe-area-inset-top,0px))}
 #dkg{font-family:var(--serif);letter-spacing:-.022em;font-weight:600;font-size:44px;line-height:1;font-variant-numeric:tabular-nums lining-nums}
 #dhint{color:var(--bone);margin-top:6px}
 .dright{right:var(--gut);top:calc(18px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:auto}
-#dmap{width:150px;height:150px;border-radius:50%;cursor:pointer;transition:transform .3s}
+#dmap{width:112px;height:112px;border-radius:50%;cursor:pointer;transition:transform .3s}
 #dmap:hover{transform:scale(1.04)}
 .drow{display:flex;gap:8px}
-.dbl{left:var(--gut);bottom:calc(22px + env(safe-area-inset-bottom,0px));color:var(--bone);background:rgba(8,9,7,.4);border:1px solid rgba(242,238,230,.13);padding:7px 13px;border-radius:999px;-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px)}
+.dbl{display:none}
 .dbl.mark{animation:chapIn 2.8s cubic-bezier(.2,.7,.2,1) both}
 @keyframes chapIn{0%{opacity:0;transform:translateY(10px);color:var(--paper)}14%{opacity:1;transform:none;color:var(--paper)}62%{color:var(--paper);border-color:rgba(242,238,230,.4)}100%{opacity:1;transform:none;color:var(--bone);border-color:rgba(242,238,230,.13)}}
 .dbr{right:var(--gut);bottom:calc(18px + env(safe-area-inset-bottom,0px));display:flex;align-items:baseline;gap:8px}
@@ -606,7 +607,7 @@ footer{position:relative;overflow:hidden}
   /* 5 — mission chip moves up out of the steering thumb's way */
   /* mission sits above the story sheet, both clear of the pedals */
   #dmiss{
-    left:12px;right:12px;max-width:none;
+    left:12px;right:auto;top:auto;max-width:190px;
     bottom:calc(292px + env(safe-area-inset-bottom,0px));
     padding:7px 11px;z-index:2;
   }
@@ -702,19 +703,19 @@ footer{position:relative;overflow:hidden}
 @media (max-width:900px){#dkg{font-size:30px}#dhint{display:none}#dmap{width:100px;height:100px}#dspeed{font-size:32px}.dbl{font-size:10px;padding:5px 10px}}
 
 
-#dobj{position:absolute;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);display:none;align-items:center;gap:10px;background:rgba(10,10,9,.72);backdrop-filter:blur(8px);border:1px solid rgba(242,238,230,.2);padding:9px 14px 9px 10px;z-index:2;white-space:nowrap;max-width:calc(100vw - 280px)}
+#dobj{position:absolute;left:50%;top:calc(18px + env(safe-area-inset-top,0px));transform:translateX(-50%);display:none;align-items:center;gap:9px;background:rgba(10,10,9,.66);backdrop-filter:blur(8px);border:1px solid rgba(242,238,230,.18);padding:7px 11px 7px 8px;z-index:2;white-space:nowrap;max-width:min(420px,calc(100vw - 300px))}
 #dobj.on{display:flex}
 #dobjarrow{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--paper);color:var(--ink);transition:transform .15s linear;flex:none}
-#dobjtxt{color:var(--paper);overflow:hidden;text-overflow:ellipsis}
+#dobjtxt{color:var(--paper);overflow:hidden;text-overflow:ellipsis;font-size:10px}
 #dwrong{position:absolute;left:50%;top:32%;transform:translateX(-50%);background:var(--ox);color:#fff;padding:10px 16px;display:none;z-index:2}
 #dwrong.on{display:block;animation:dvin .3s}
-#dstory{position:absolute;left:var(--gut,24px);bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(0,16px);width:min(500px,calc(50vw - 24px));display:flex;align-items:center;gap:16px;text-align:left;opacity:0;transition:opacity .7s,transform .7s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:2}
+#dstory{position:absolute;left:var(--gut,24px);bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translate(0,16px);width:min(560px,calc(50vw - 24px));display:flex;align-items:stretch;gap:0;text-align:left;opacity:0;transition:opacity .7s,transform .7s cubic-bezier(.2,.8,.2,1);pointer-events:none;z-index:2;border-radius:12px;overflow:hidden;background:var(--paper);box-shadow:0 18px 48px rgba(0,0,0,.3)}
 #dstory.on{opacity:1;transform:translate(0,0)}
-#dstory img{width:clamp(96px,10vw,140px);aspect-ratio:9/15;object-fit:cover;flex:none;border:6px solid var(--paper);box-shadow:0 20px 50px rgba(0,0,0,.6);transform:rotate(-2deg)}
-#dstory .stx{background:rgba(10,10,9,.72);backdrop-filter:blur(10px);padding:14px 16px;border-left:2px solid var(--paper)}
-#dstory .se{color:var(--bone);margin-bottom:10px}
-#dstory .s1{font-family:var(--serif);font-weight:600;font-size:clamp(20px,2.1vw,30px);line-height:1.05;letter-spacing:-.028em}
-#dstory .s2{margin-top:8px;color:var(--bone);font-size:clamp(12px,1vw,14px)}
+#dstory img{width:112px;aspect-ratio:3/4;object-fit:cover;flex:none;border:0;box-shadow:none;transform:none}
+#dstory .stx{flex:1;min-width:0;background:var(--paper);padding:15px 18px;border-left:3px solid var(--ox);color:var(--ink)}
+#dstory .se{color:var(--ox);margin-bottom:6px}
+#dstory .s1{font-family:var(--serif);font-weight:600;font-size:clamp(19px,1.8vw,26px);line-height:1.08}
+#dstory .s2{margin-top:7px;color:rgba(6,7,11,.72);font-size:13px;line-height:1.4}
 #dyours,#dext{position:absolute;inset:0;z-index:7;display:none;place-items:center;background:radial-gradient(ellipse at center,rgba(10,10,9,.86),rgba(6,6,5,.97));padding:24px;text-align:center}
 #dyours.on,#dext.on{display:grid;animation:dvin .6s cubic-bezier(.2,.8,.2,1)}
 #dyours h3,#dext h3{font-family:var(--serif);font-weight:600;font-size:clamp(38px,6vw,76px);line-height:.98;letter-spacing:-.034em;margin:18px 0 18px}
@@ -736,10 +737,19 @@ footer{position:relative;overflow:hidden}
 .fin-keep:hover{color:var(--paper)}
 #drive.touch .dbr{top:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));left:auto;right:max(16px,env(safe-area-inset-right,0px));transform:none}
 #drive.touch #dobj{top:auto;bottom:calc(112px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px)}
-#drive.touch #dstory{top:calc(205px + env(safe-area-inset-top,0px));bottom:auto;gap:12px}
-#drive.touch #dstory .s1{font-size:22px}
-#drive.touch #dstory img{width:96px;border-width:4px}
+#drive.touch #dstory{top:auto;bottom:calc(178px + env(safe-area-inset-bottom,0px));left:12px;right:12px;width:auto;gap:12px}
+#drive.touch #dstory .s1{font-size:19px;line-height:1.2}
+#drive.touch #dstory .s2{font-size:13px;line-height:1.3}
+#drive.touch #dstory img{width:74px;border-width:0;transform:none}
 #drive.touch #dstory .stx{padding:12px 14px}
+
+@media (pointer:coarse) and (orientation:landscape) and (max-height:520px){
+  #drive.touch #dstory{top:auto;bottom:calc(82px + env(safe-area-inset-bottom,0px));left:50%;right:auto;transform:translateX(-50%);width:min(420px,calc(100vw - 320px))}
+  #drive.touch #dstory.on{transform:translateX(-50%)}
+  #drive.touch #dstory img{width:60px}
+  #drive.touch #dstory .s1{font-size:16px}
+  #drive.touch #dstory .s2{font-size:11px}
+}
 
 /* lap timer */
 #dlap{position:absolute;left:var(--gut);top:calc(96px + env(safe-area-inset-top,0px));display:none;background:rgba(10,10,9,.62);backdrop-filter:blur(8px);border-left:2px solid var(--paper);padding:10px 14px;min-width:172px}
@@ -755,11 +765,11 @@ footer{position:relative;overflow:hidden}
 #dlap.void{border-left-color:var(--ox)}
 #dlap.void b{color:var(--ox)}
 /* mission panel */
-#dmiss{position:absolute;left:var(--gut);bottom:calc(58px + env(safe-area-inset-bottom,0px));background:rgba(10,10,9,.6);backdrop-filter:blur(8px);border-left:2px solid #d4a83a;padding:9px 13px;max-width:290px;display:none}
+#dmiss{position:absolute;left:var(--gut);top:calc(16px + env(safe-area-inset-top,0px));bottom:auto;background:rgba(6,7,11,.68);backdrop-filter:blur(6px);border-left:2px solid var(--ox);padding:7px 10px;max-width:190px;display:none}
 #dmiss.on{display:block}
-#dmiss .mt{color:#d4a83a}
-#dmiss .mh{font-family:var(--serif);font-weight:500;font-size:20px;line-height:1.1;margin-top:3px}
-#dmiss .ms{color:var(--bone);margin-top:4px}
+#dmiss .mt{color:var(--paper);opacity:.72;font-size:8px}
+#dmiss .mh{font-family:var(--serif);font-weight:600;font-size:14px;line-height:1.1;margin-top:2px;color:var(--paper)}
+#dmiss .ms{display:none}
 /* fastest lap board */
 #dboard{position:absolute;inset:0;z-index:5;display:none;place-items:center;background:rgba(8,8,7,.86);backdrop-filter:blur(6px);padding:24px}
 #dboard.on{display:grid;animation:dvin .35s cubic-bezier(.2,.8,.2,1)}
@@ -1116,8 +1126,8 @@ html.at-foot .wa,html.at-foot #guide{opacity:0!important;pointer-events:none}
 html.at-foot #guide canvas{pointer-events:none}
 @media (hover:hover) and (min-width:901px){
  html.driving #drive .dbl{left:150px}
- html.driving #dmiss{left:150px;bottom:calc(66px + env(safe-area-inset-bottom,0px))}
- html.driving #dstory{left:150px;bottom:calc(164px + env(safe-area-inset-bottom,0px))}}
+ html.driving #dmiss{left:24px;top:calc(16px + env(safe-area-inset-top,0px));bottom:auto}
+ html.driving #dstory{left:24px;bottom:calc(96px + env(safe-area-inset-bottom,0px))}}
 @media (max-width:900px){#guide{width:104px;height:140px;left:4px}#guide canvas{width:100px;height:128px}#bubble{left:70px;bottom:104px;max-width:min(230px,calc(100vw - 150px))}}
 /* desktop hero: size the headline by screen height too, so it never runs under the nav on a laptop */
 @media (min-width:901px){
@@ -1243,18 +1253,18 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
   <!-- Story without the driving: most visitors will never play, and the
        thirteen chapters are the actual sales argument. -->
   <div id="dread"><div class="rd-in">
-    <div class="mono" style="color:var(--bone)">Thirteen chapters · 68 kg to 102</div>
+    <div class="mono" style="color:var(--bone)">Thirteen chapters · one road</div>
     <h3 class="disp">The whole story.</h3>
     <ol id="dreadlist"></ol>
     <button id="dreadx" class="dbtn mono rd-x">Close ✕</button>
   </div></div>
-  <div id="dcine"><span>68 kg.</span><span>They laughed.</span><span>Watch what happened next.</span><em class="mono">Click to skip</em></div>
+  <div id="dcine"><span>They laughed.</span><span>I kept going.</span><span>Watch what happened next.</span><em class="mono">Click to skip</em></div>
   <div id="dhud">
     <div class="dtl"><div id="dkg">68 kg</div><div class="mono" id="dhint"></div></div>
     <div class="dright"><canvas id="dmap" width="180" height="180" title="Open map (M)"></canvas><button id="dmenu" class="dbtn mono" aria-expanded="false" aria-controls="drow">Menu <span class="mchev">▾</span></button><div class="drow" id="drow"><button id="drace" class="dbtn mono" title="Start a timed lap (L)">Time a lap</button><button id="dboardb" class="dbtn mono" title="Fastest laps (B)">Laps</button><button id="dtiltb" class="dbtn mono dtouch">Tilt: off</button><button id="dresetb" class="dbtn mono dtouch">Reset</button><button id="dmute" class="dbtn mono">Sound on</button><button id="dnight" class="dbtn mono" title="Night (N)">Night</button><button id="dexit" class="dbtn mono">Exit ✕</button></div></div>
     <div id="dlap"><div class="lrow"><span class="mono">Lap</span><b id="dlapt">--:--.--</b></div><div class="lsub mono"><span id="dlapn">Lap 1</span><span id="dlapb">Best --:--.--</span></div><div class="lsec"><i></i><i></i><i></i><i></i></div></div>
     <div id="dmiss"><div class="mono mt">Mission <span id="dmissc">0/6</span></div><div class="mh" id="dmissh">-</div><div class="mono ms" id="dmisss">-</div></div>
-    <div class="dbl mono" id="dchap">Chapter 01 · 68 kg</div>
+    <div class="dbl mono" id="dchap">Chapter 01 · The joke</div>
     <div class="dbr"><span id="dspeed">000</span><span class="mono">km/h</span></div>
   </div>
   <div id="dprompt" class="mono"></div>
@@ -1264,7 +1274,7 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
   <div id="dstory"><img alt="" hidden><div class="stx"><div class="se mono"></div><div class="s1"></div><div class="s2"></div></div></div>
   <div id="dfin"><div class="fin-in">
     <div class="mono" style="color:var(--bone)">Chapter 13 · Your chapter</div>
-    <h3>68 became 102.<br><em>You're up next.</em></h3>
+    <h3>He kept going.<br><em>You're up next.</em></h3>
     <p>He figured it out alone, the slow way. You don't have to. Program, form checks, food, weekly check-ins — from ₹699 a month.</p>
     <div class="fin-cta"><button id="dfintrial" class="btn"><span>Sign up for the trial</span><span class="ar">→</span></button><button id="dfinwa" class="btn line"><span>Message on WhatsApp</span></button></div>
     <button id="dfinkeep" class="mono fin-keep">Keep driving</button>
@@ -1272,7 +1282,7 @@ html.rd-lock,html.rd-lock body{overflow:hidden!important}
   <div id="dyours"><div class="fin-in">
     <div class="mono" style="color:var(--bone)">Chapter 13 · Your chapter</div>
     <h3>This was mine.<br><em>What's yours?</em></h3>
-    <p>Thirteen chapters, 68 kg to 102, and fifteen kilos still to go. The finish line here is the start line. Before you loop back to chapter 01 — what are you working toward?</p>
+    <p>Thirteen chapters, one road, and fifteen kilos still to go. The finish line here is the start line. Before you loop back to chapter 01 — what are you working toward?</p>
     <input id="dyourstxt" maxlength="90" placeholder="What are you working toward?" aria-label="What are you working toward" autocomplete="off">
     <div class="fin-cta"><button id="dyoursgo" class="btn"><span>Start my chapter</span><span class="ar">→</span></button></div>
     <button id="dyoursskip" class="mono fin-keep">Keep driving</button>

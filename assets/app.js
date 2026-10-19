@@ -36,7 +36,11 @@ addEventListener('DOMContentLoaded',()=>{try{
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const REDUCE=matchMedia('(prefers-reduced-motion: reduce)').matches;
-const G=!!(window.gsap&&window.ScrollTrigger)&&!REDUCE;
+/* Only phones and tablets skip the page animations. Laptops always get them: Safari reports 4 cores on any Mac with
+   fewer than 8 (and on every Mac once its fingerprinting protection is on), so the old core-count test switched the
+   animations off for Mac visitors, and GSAP costs next to nothing anyway. The 3D drive has its own quality steps. */
+const LOW_POWER=matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-hover:hover)').matches;
+const G=!!(window.gsap&&window.ScrollTrigger)&&!REDUCE&&!LOW_POWER;
 document.documentElement.classList.add(G?'anim':'no-anim');
 if('scrollRestoration' in history)history.scrollRestoration='manual';
 if(location.hash==='#apply'){history.replaceState(null,'',location.pathname+location.search);scrollTo(0,0);requestAnimationFrame(()=>scrollTo(0,0))}
@@ -551,7 +555,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
   if(window.THREE){
     const cv=$('#iavatar'),W=cv.clientWidth||280,H=cv.clientHeight||340;
     const R=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true});
-    R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(W,H,false);
+    R.setPixelRatio(Math.min(devicePixelRatio||1,1.5));R.setSize(W,H,false);
     R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;
     if('outputEncoding' in R)R.outputEncoding=THREE.sRGBEncoding;
     R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.8;
@@ -559,7 +563,7 @@ function endIntro(){if(intro.classList.contains('gone'))return;intro.classList.a
     const C=new THREE.PerspectiveCamera(26,W/H,.05,40);
     S.add(new THREE.HemisphereLight(0xdfe8f7,0x3a3228,.34));
     const kl=new THREE.DirectionalLight(0xfff4e2,1.0);kl.position.set(1.9,3.1,2.4);kl.castShadow=true;
-    kl.shadow.mapSize.set(1024,1024);Object.assign(kl.shadow.camera,{left:-1.8,right:1.8,top:2.2,bottom:-.5,near:.4,far:9});
+    kl.shadow.mapSize.set(512,512);Object.assign(kl.shadow.camera,{left:-1.8,right:1.8,top:2.2,bottom:-.5,near:.4,far:9});
     kl.shadow.bias=-.0007;kl.shadow.radius=2.5;S.add(kl);
     /* A back rim is what separates one muscle group from the next on fair skin; without it
        the whole body flattens into a single cream-coloured shape under the key. */
@@ -904,8 +908,8 @@ addEventListener('scroll',mcta,{passive:true});
   const JOURNEY=[
     {id:'cp01',chapter:'01',name:'The joke',u:.008,side:1,kind:'photo',bw:68,
      hook:'Nobody asked how I was. They just told me how I looked.',
-     stat:'~68 KG  ·  11TH STANDARD, POST MID-TERMS',
-     title:'~68 kg',sub:'11th standard, post mid-terms',
+    stat:'11TH STANDARD  ·  POST MID-TERMS',
+    title:'The joke',sub:'11th standard, post mid-terms',
      line:'"Nobody asked how I was. They just told me how I looked."',
      line2:'Badminton till 6:30. Then a relative, in front of everyone: look at your face and arms.',
      photos:[{src:GP(1),ar:.549,cap:'11th standard'}]},
@@ -920,7 +924,7 @@ addEventListener('scroll',mcta,{passive:true});
 
     {id:'cp03',chapter:'03',name:'The squat',u:.145,side:1,kind:'rack',bw:81,
      hook:"Less taunts. More 'you look in shape, man.'",
-     stat:'140 KG PR  ·  180 KG × 3 WITNESSED  ·  81 KG AT COLLEGE',
+    stat:'140 KG PR  ·  180 KG × 3 WITNESSED',
      title:'140 kg',sub:'Second deadlift PR',pr:'140 kg',prName:'Second deadlift PR',
      line:'"Less taunts. More \u2018you look in shape, man.\u2019"',
      line2:'First competition, 140 kg. Then a senior repped 180 for three like it was nothing.',
@@ -928,8 +932,8 @@ addEventListener('scroll',mcta,{passive:true});
 
     {id:'cp04',chapter:'04',name:'The ego',u:.215,side:-1,kind:'photo',bw:81,big:true,
      hook:'High ego. Higher expectations. About to meet both.',
-     stat:'81 KG  ·  ABHIVRATA, POWERLIFTING',
-     title:'81 kg',sub:'Abhivrata · the college meet',
+    stat:'ABHIVRATA  ·  POWERLIFTING',
+    title:'The ego',sub:'Abhivrata · the college meet',
      line:'"High ego. Higher expectations. About to meet both."',
      line2:'A senior asked him to fill a slot. He said yes, certain he was the best in the room.',
      photos:[{src:GP(5),ar:1.772,cap:'Competition day'}]},
@@ -952,16 +956,16 @@ addEventListener('scroll',mcta,{passive:true});
 
     {id:'cp07',chapter:'07',name:'The arms they laughed at',u:.500,side:1,kind:'photo',bw:94,
      hook:'Same arms. Different sentence.',
-     stat:'81 KG  →  94 KG',
-     title:'81 → 94 kg',sub:'First real bulk · 4th year',
+    stat:'FIRST REAL BULK  ·  FOURTH YEAR',
+    title:'First real bulk',sub:'Fourth year',
      line:'"Same arms. Different sentence."',
      line2:'The direct answer to chapter 01. Full circle, without a word said back.',
      photos:[{src:GP(4),ar:.562,cap:'Same doorway'},{src:GP(20),ar:.561,cap:'Front double biceps'},{src:GP(2),ar:.461,cap:'Before'}]},
 
-    {id:'cp08',chapter:'08',name:'102 kg',u:.575,side:-1,kind:'photo',bw:102,
+    {id:'cp08',chapter:'08',name:'The turning point',u:.575,side:-1,kind:'photo',bw:102,
      hook:'The scale went up. So did my mistakes. Then I actually learned something.',
-     stat:'94→100 UNFOCUSED  ·  100→102 INFORMED  ·  150 / 225 / 100 KG',
-     title:'102 kg',sub:'Squat 150 · Deadlift 225 · Bench 100',pr:'225 kg',prName:'Deadlift at 102 kg',
+    stat:'SQUAT 150  ·  DEADLIFT 225  ·  BENCH 100 KG',
+      title:'The turning point',sub:'Squat 150 · Deadlift 225 · Bench 100',pr:'225 kg',prName:'Deadlift PR',
      line:'"The scale went up. So did my mistakes. Then I actually learned something."',
      line2:'The number on the scale means nothing without the work behind it.',
      photos:[{src:GP(10),ar:.562,cap:'94 → 100, unfocused'},{src:GP(9),ar:.562,cap:'100 → 102, informed'}]},
@@ -1064,7 +1068,7 @@ addEventListener('scroll',mcta,{passive:true});
      revisited — so a weak laptop with a mouse got full shadows and 1.3 DPR for
      the entire drive regardless of actual frame rate. This instead watches the
      real FPS while driving and steps quality down (then back up) to match. */
-  let qTier=LOW?1:0;             // 0 full, 1 reduced, 2 minimum
+  let qTier=LOW?1:0,qFps=60;     // 0 full, 1 reduced, 2 minimum
   /* The downgrade used to need a full 1.2s of bad frames per step, so a weak phone
      stuttered for ~2.5s before reaching the cheapest tier. The first drop is now quick
      and the second only slightly slower; the upgrade stays deliberately slow so quality
@@ -1084,19 +1088,18 @@ addEventListener('scroll',mcta,{passive:true});
   }
   function watchFps(dt){
     if(!active||!driving||dt<=0)return;
-    const fps=1/dt;
-    if(fps<42){qGoodT=0;qBadT+=dt*1000;if(qBadT>qDownMs()&&qTier<2){setTier(qTier+1);qBadT=0}}
-    else if(fps>56){qBadT=0;qGoodT+=dt*1000;if(qGoodT>Q_UP_MS&&qTier>0){setTier(qTier-1);qGoodT=0}}
+    qFps+=(1/dt-qFps)*(1-Math.exp(-dt*3.5));
+    if(qFps<42){qGoodT=0;qBadT+=dt*1000;if(qBadT>qDownMs()&&qTier<2){setTier(qTier+1);qBadT=0}}
+    else if(qFps>56){qBadT=0;qGoodT+=dt*1000;if(qGoodT>Q_UP_MS&&qTier>0){setTier(qTier-1);qGoodT=0}}
     else{qGoodT=0;qBadT=0}
   }
-  const SCN={grass:null,dust:null,stars:null};
+  const SCN={dust:null,stars:null};
   const DPR=()=>Math.min(devicePixelRatio||1,LOW?ULTRA.dprLow:ULTRA.dpr);
   function applyQ(){
     const c=tierCfg(qTier);
     R.setPixelRatio(Math.min(devicePixelRatio||1,c.dpr));R.setSize(W,H,false);
     R.shadowMap.enabled=c.shadow;
     if(typeof sun!=='undefined'&&sun){sun.castShadow=c.shadow;sun.shadow.needsUpdate=true}
-    if(SCN.grass)SCN.grass.visible=true;
     if(SCN.dust)SCN.dust.visible=true;
     if(SCN.stars)SCN.stars.visible=true;
     if(typeof pGeo!=='undefined'&&pGeo)pGeo.setDrawRange(0,PCOUNT);
@@ -1494,8 +1497,8 @@ addEventListener('scroll',mcta,{passive:true});
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
   roadM.color.setHex(0xffffff);roadM.map=roadTex();edgeM.color.setHex(0x6d685e);
   edgeM.map=grainTex(64,.12,1,.6);edgeM.map.repeat.set(3,1);
-  strip(7.6,.04,edgeM);strip(5.8,.09,roadM);
-  stripB(7,.04,edgeM);stripB(5.2,.09,roadM);
+  strip(8.6,.04,edgeM);strip(6.8,.09,roadM);
+  stripB(7.8,.04,edgeM);stripB(6.2,.09,roadM);
   /* kerbs on the bends, so the tight corners read before you are in them */
   (function(){const R=[],mat=new THREE.MeshLambertMaterial({map:curbTex()});
     for(let i=0;i<N;i++){const a=at(i/N).tg,b=at((i+2)/N).tg;R.push(Math.acos(Math.max(-1,Math.min(1,a.x*b.x+a.z*b.z))))}
@@ -1503,7 +1506,7 @@ addEventListener('scroll',mcta,{passive:true});
     const runs=[];let st=-1;for(let i=0;i<=N;i++){const v=i<N&&dil[i];if(v&&st<0)st=i;if(!v&&st>=0){runs.push([st,i]);st=-1}}
     const seg=curve.getLength()/N;
     runs.forEach(([a,b])=>{if(b-a<4)return;[1,-1].forEach(sd=>{const pos=[],uv=[],idx=[];let k=0;
-      for(let i=a;i<=b;i++){const {p,n}=at(i/N),o1=2.9,o2=3.5;
+      for(let i=a;i<=b;i++){const {p,n}=at(i/N),o1=3.4,o2=4.1;
         pos.push(p.x+n.x*sd*o1,p.y+.1,p.z+n.z*sd*o1,p.x+n.x*sd*o2,p.y+.13,p.z+n.z*sd*o2);
         const v=(i-a)*seg/2;uv.push(0,v,1,v);if(i<b){idx.push(k,k+1,k+2,k+1,k+3,k+2)}k+=2}
       if(sd<0){for(let q=0;q<idx.length;q+=3){const t=idx[q+1];idx[q+1]=idx[q+2];idx[q+2]=t}}
@@ -1521,7 +1524,7 @@ addEventListener('scroll',mcta,{passive:true});
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
     g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
     const m=new THREE.Mesh(g,mat);m.receiveShadow=true;S.add(m);return m}
-  stripRing(7,.04,edgeM);stripRing(5.2,.09,roadM);
+  stripRing(7.8,.04,edgeM);stripRing(6.2,.09,roadM);
   const prog=strip(.28,.11,glow);prog.geometry.setDrawRange(0,0);
   // lamp posts (instanced posts + instanced bulbs so it is 2 draw calls, not 60)
   const lamps=[];
@@ -1532,15 +1535,15 @@ addEventListener('scroll',mcta,{passive:true});
       o.position.set(bx,p.y+1.6,bz);o.rotation.set(0,0,0);o.scale.set(1,1,1);o.updateMatrix();postIM.setMatrixAt(i,o.matrix);
       const bulb=new THREE.Mesh(bulbGeo,M(0x3a3733));bulb.position.set(bx,p.y+3.3,bz);S.add(bulb);lamps.push({u,bulb})});
     S.add(postIM)})();
-  /* ---------- weight plates to collect: drive through one and it goes on the bar ---------- */
-  const plateList=[];let platesGot=0,plateKg=20;
-  (function(){const PD=[[25,0xb8322f],[20,0x2f4f9e],[15,0xd9b23a],[10,0x3f8a56]],hubM=M(0xc9c2b4),NP=24,geo={};
+  /* ---------- gold coins along the road ---------- */
+  const coinList=[];let coinsGot=0;
+  (function(){const NP=24,coinGeo=new THREE.CylinderGeometry(.42,.42,.12,24),rimGeo=new THREE.TorusGeometry(.29,.035,6,20);
+    const rimM=M(0xffd778,{metalness:.55,roughness:.24});
     for(let i=0;i<NP;i++){let u=(i+.5)/NP;if(JOURNEY.some(J=>Math.abs(J.u-u)<.014))u+=.02;
-      const {p,n}=at(u),off=[-1.4,0,1.4][i%3],[kg,col]=PD[i%4],r=.36+kg/100;
-      if(!geo[kg])geo[kg]=new THREE.CylinderGeometry(r,r,.16,28);
-      const g=new THREE.Group(),disc=new THREE.Mesh(geo[kg],M(col,{emissive:col,emissiveIntensity:.35}));disc.rotation.z=Math.PI/2;disc.castShadow=true;g.add(disc);
-      const hb=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.24,12),hubM);hb.rotation.z=Math.PI/2;g.add(hb);
-      const y0=p.y+1.2;g.position.set(p.x+n.x*off,y0,p.z+n.z*off);S.add(g);plateList.push({g,kg,y0,got:false,ph:i*.7})}})();
+      const {p,n}=at(u),off=[-1.4,0,1.4][i%3],g=new THREE.Group();
+      const disc=new THREE.Mesh(coinGeo,gold);disc.rotation.z=Math.PI/2;disc.castShadow=!LOW;g.add(disc);
+      const rim=new THREE.Mesh(rimGeo,rimM);rim.rotation.y=Math.PI/2;g.add(rim);
+      const y0=p.y+1.2;g.position.set(p.x+n.x*off,y0,p.z+n.z*off);S.add(g);coinList.push({g,y0,got:false,ph:i*.7})}})();
   /* ---------- boost pads on the straights ---------- */
   const padList=[];let padT=0,padCool=0;
   (function(){const c=document.createElement('canvas');c.width=128;c.height=160;const x=c.getContext('2d');
@@ -1552,7 +1555,7 @@ addEventListener('scroll',mcta,{passive:true});
     for(let u=.04;u<.96;u+=.004){const t1=at(u-.01).tg,t2=at(u+.01).tg,k=Math.acos(Math.max(-1,Math.min(1,t1.x*t2.x+t1.z*t2.z)));
       if(Math.abs(hAt(u+.01)-hAt(u-.01))>.25)continue;
       if(JOURNEY.some(J=>Math.abs(J.u-u)<.012))continue;
-      const q=at(u).p;if(plateList.some(P=>Math.hypot(P.g.position.x-q.x,P.g.position.z-q.z)<8))continue;
+      const q=at(u).p;if(coinList.some(P=>Math.hypot(P.g.position.x-q.x,P.g.position.z-q.z)<8))continue;
       cand.push([u,k])}
     cand.sort((A,B)=>A[1]-B[1]);for(const [u] of cand){if(us.length>=5)break;if(us.some(v=>Math.abs(v-u)<.12&&Math.abs(v-u)<.88))continue;us.push(u)}
     us.forEach((u,i)=>{const {p,tg}=at(u),m=new THREE.Mesh(geoP,mat);m.position.set(p.x,p.y+.12,p.z);m.rotation.y=Math.atan2(tg.x,tg.z)+Math.PI;S.add(m);
@@ -1579,18 +1582,6 @@ addEventListener('scroll',mcta,{passive:true});
     reedIM.count=k;S.add(reedIM);
     const lilyIM=new THREE.InstancedMesh(new THREE.CircleGeometry(1,10),M(0x2e4a26,{roughness:.6,side:THREE.DoubleSide}),lilies.length);
     lilies.forEach(([x,z,s],i)=>{o.position.set(x,WATER_Y+.03,z);o.scale.set(s,s,s);o.rotation.set(-Math.PI/2,0,i);o.updateMatrix();lilyIM.setMatrixAt(i,o.matrix)});S.add(lilyIM)})();
-  /* ---------- grass tufts near the road and the water (one draw call) ---------- */
-  (function(){if(LOW)return;const T=[];let seed=709;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
-    while(T.length<1200&&tries<30000){tries++;const x=(rnd()-.5)*(372*MK*LAND),z=(rnd()-.5)*(372*MK*LAND);if(zoneHit(x,z,2))continue;const rd=roadNear(x,z).d;
-      const pd=Math.hypot(x-POND.x,z-POND.z);
-      if(!(rd<20||pd<POND.r*1.9))continue;if(rd<4.2)continue;if(pd<pondR(x,z)*1.05)continue;
-      const h=HF.h(x,z);if(HF.slope(x,z)>1.15)continue;if(h<-.2)continue;
-      T.push([x,h,z,.5+rnd()*.7,rnd()*6.3])}
-    const g=new THREE.PlaneGeometry(.42,.44);g.translate(0,.2,0);
-    const im=new THREE.InstancedMesh(g,addSway(new THREE.MeshLambertMaterial({color:0x51612f,side:THREE.DoubleSide}),'0.1'),T.length*2);
-    const o=new THREE.Object3D();let k=0;
-    T.forEach(([x,h,z,s,ry])=>{for(let b=0;b<2;b++){o.position.set(x,h,z);o.scale.set(s,s*(1+b*.2),s);o.rotation.set(0,ry+b*1.57,0);o.updateMatrix();im.setMatrixAt(k++,o.matrix)}});
-    im.count=k;S.add(im);SCN.grass=im})();
   /* ---------- labels ---------- */
   function label(txt,sub,w=1024,h=256,dark=false){const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle=dark?'#f2eee6':'#15140f';x.fillRect(0,0,w,h);x.fillStyle=dark?'#15140f':'#f2eee6';x.textAlign='center';x.textBaseline='middle';x.font=`600 ${sub?h*.4:h*.5}px -apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Inter,"Helvetica Neue",Arial,sans-serif`;x.fillText(txt,w/2,sub?h*.38:h*.5,w*.94);if(sub){x.font=`600 ${h*.12}px ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace`;x.fillStyle=dark?'#6b675f':'#9a958c';x.fillText(sub.toUpperCase(),w/2,h*.78,w*.94)}const t=new THREE.CanvasTexture(c);t.anisotropy=4;return t}
   function signPost(x,z,y,txt,sub,dark,ry){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=ry;S.add(g);const post=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,3.2,6),steel);post.position.y=1.6;g.add(post);const b=new THREE.Mesh(new THREE.BoxGeometry(6.4,1.8,.2),dark?paper:ink);b.position.y=3.8;g.add(b);const pl=new THREE.Mesh(new THREE.PlaneGeometry(6.2,1.6),new THREE.MeshBasicMaterial({map:label(txt,sub,1024,264,dark)}));pl.position.set(0,3.8,.12);g.add(pl);const p2=pl.clone();p2.rotation.y=Math.PI;p2.position.z=-.12;g.add(p2);staticBox(x,y+1.6,z,.15,1.6,.15);return g}
@@ -1745,10 +1736,10 @@ addEventListener('scroll',mcta,{passive:true});
      0.226 into the top of the picture frame, and the strip prints overlapped by 0.091.
      Take the top of the thing underneath instead and stack the caption above it, so the
      clearance is correct whatever the board's width works out to. */
-  function chapBoard(g,J,w,topY,gap){const bh=w*.359;
+  function chapBoard(g,J,w,topY,gap,xOffset=0){const bh=w*.359;
     const lab=new THREE.Mesh(new THREE.PlaneGeometry(w,bh),
       new THREE.MeshBasicMaterial({map:chapTex(J.chapter,J.name,J.hook,J.stat),side:THREE.DoubleSide}));
-    lab.position.set(0,topY+bh/2+(gap===undefined?.45:gap),.3);g.add(lab);return lab}
+    lab.position.set(xOffset,topY+bh/2+(gap===undefined?.45:gap),.3);g.add(lab);return lab}
   function titleBoard(g,eye,line,sub,w,topY){const bh=w*.219;
     const lab=new THREE.Mesh(new THREE.PlaneGeometry(w,bh),new THREE.MeshBasicMaterial({map:capTex(eye,line,sub),side:THREE.DoubleSide}));
     lab.position.set(0,topY+bh/2+.35,.26);g.add(lab)}
@@ -1761,7 +1752,7 @@ addEventListener('scroll',mcta,{passive:true});
        group turned back by the difference. */
     const gq=new THREE.Group();gq.rotation.y=rroad-ry;g.add(gq);
     {const gy=HF.h(x,z);if(y-gy>.3){const hh=y-gy;const pil=new THREE.Mesh(new THREE.BoxGeometry(J.big?11:8,hh,1.2),skirtM);pil.position.y=-hh/2;g.add(pil)}}
-    if(J.kind==='photo'){const h=J.big?10.5:9,w=h*(J.ar||.56);const frame=new THREE.Mesh(new THREE.BoxGeometry(w+.6,h+.6,.36),paper);frame.position.y=h/2+1.7;g.add(frame);const mat=new THREE.MeshBasicMaterial({map:gameTex(J.photo,J.ar||.56),side:THREE.DoubleSide});const pic=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);pic.position.set(0,h/2+1.7,.2);g.add(pic);const back=pic.clone();back.rotation.y=Math.PI;back.position.z=-.2;g.add(back);[-1,1].forEach(s=>{const post=new THREE.Mesh(new THREE.BoxGeometry(.3,1.8,.3),ink);post.position.set(s*(w/2-.7),.9,0);g.add(post)});chapBoard(g,J,Math.max(8.5,w+.6),h+2.0);staticBox(x,y+1.4,z,w/2+.3,1.4,.4,ry);
+    if(J.kind==='photo'){const h=12,w=h*(J.ar||.56),fy=h/2+1.7;const trim=new THREE.Mesh(new THREE.BoxGeometry(w+.96,h+.96,.24),M(0x8f2a2a,{roughness:.78}));trim.position.y=fy;g.add(trim);const frame=new THREE.Mesh(new THREE.BoxGeometry(w+.8,h+.8,.36),paper);frame.position.y=fy;g.add(frame);const mat=new THREE.MeshBasicMaterial({map:gameTex(J.photo,J.ar||.56),side:THREE.DoubleSide});const pic=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);pic.position.set(0,fy,.2);g.add(pic);const back=pic.clone();back.rotation.y=Math.PI;back.position.z=-.2;g.add(back);[-1,1].forEach(s=>{const post=new THREE.Mesh(new THREE.BoxGeometry(.3,1.8,.3),ink);post.position.set(s*(w/2-.7),.9,0);g.add(post)});const labelW=Math.min(14,Math.max(12,w*1.45)),labelH=labelW*.359;chapBoard(g,J,labelW,h/2+1.7-labelH/2-.45,.45,w/2+labelW/2+.65);staticBox(x,y+1.4,z,w/2+.3,1.4,.4,ry);
       if(J.anim==='deadlift'){const plat=new THREE.Group();plat.position.set(0,0,5.2);g.add(plat);const pf=new THREE.Mesh(new THREE.BoxGeometry(4.6,.14,3.6),M(0x2b241c,{roughness:.9}));pf.position.y=.07;pf.receiveShadow=true;plat.add(pf);const pinset=new THREE.Mesh(new THREE.BoxGeometry(3.6,.01,2.6),M(0x3a332a,{roughness:.88}));pinset.position.y=.145;plat.add(pinset);
         const F=buildLifter();F.root.scale.setScalar(.64);F.root.position.y=.14;F.root.rotation.y=Math.PI;F.root.traverse(o=>{if(o.isMesh)o.castShadow=true});plat.add(F.root);anims.push({F,pose:poseDeadLego,speed:1.15,g:J})}}
     if(J.kind==='sign'){const post=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,3.6,8),steel);post.position.y=1.8;g.add(post);const b=new THREE.Mesh(new THREE.BoxGeometry(8,2.4,.25),paper);b.position.y=4.4;b.castShadow=true;g.add(b);const pl=new THREE.Mesh(new THREE.PlaneGeometry(7.8,2.8),new THREE.MeshBasicMaterial({map:chapTex(J.chapter,J.name,J.hook,J.stat),side:THREE.DoubleSide}));pl.position.set(0,4.4,.14);g.add(pl);const p2=pl.clone();p2.rotation.y=Math.PI;p2.position.z=-.14;g.add(p2);staticBox(x,y+1.8,z,.15,1.8,.15)}
@@ -2214,16 +2205,6 @@ addEventListener('scroll',mcta,{passive:true});
       S.add(trIM);blobIM.forEach(m=>S.add(m))}
     // only the roadside trees need to be solid; the rest are scenery and cost nothing
     treePts.forEach(([x,z,s])=>{if(roadNear(x,z).d<42)staticBox(x,HF.h(x,z)+1.2,z,.34,1.2,.34)});
-    // low scrub, one draw call, to stop the ground reading as bare polygons
-    if(!LOW){const B=[];let t2=0;
-      while(B.length<480&&t2<20000){t2++;const x=(rnd()-.5)*(372*MK*LAND),z=(rnd()-.5)*(372*MK*LAND);if(zoneHit(x,z,3))continue;
-        if(roadNear(x,z).d<5.5)continue;
-        if((x-POND.x)**2+(z-POND.z)**2<(pondR(x,z)*1.02)**2)continue;
-        if(HF.h(x,z)<-.15||HF.slope(x,z)>1.5)continue;
-        B.push([x,z,.55+rnd()*.8,rnd()*6.283])}
-      const bIM=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1,0),M(0x475a2a,{roughness:.98}),B.length);bIM.receiveShadow=true;
-      B.forEach(([x,z,s,ry],i)=>{o.position.set(x,HF.h(x,z)+s*.42,z);o.scale.set(s,s*.62,s*.9);o.rotation.set(ry*.3,ry,ry*.2);o.updateMatrix();bIM.setMatrixAt(i,o.matrix)});
-      S.add(bIM)}
   })();
   /* ---------- gold rings (the ring-run mission) ---------- */
   const ringPts=[];{let seed=91;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;let tries=0;
@@ -2245,8 +2226,8 @@ addEventListener('scroll',mcta,{passive:true});
   const MSAVE=(()=>{try{return JSON.parse(localStorage.getItem('sl_miss')||'{}')}catch(e){return{}}})();
   const LAP_TARGET=Math.round(80000*MK/1000)*1000;
   const MISSIONS=[
-    {id:'rings',name:'Ring run',hint:'Drive through all six gold rings',goal:6},
-    {id:'plates',name:'Load the bar',hint:'Drive through all 24 weight plates on the road',goal:24},
+    {id:'rings',name:'Collect the rings',hint:'Drive through all six gold rings',goal:6},
+    {id:'plates',name:'Coin run',hint:'Collect all 24 gold coins along the road',goal:24},
     {id:'cones',name:'Cone slalom',hint:'Knock over seven cones at the playground',goal:7},
     {id:'swim',name:'Take it swimming',hint:'Drive into the pond and wade through',goal:1},
     {id:'air',name:'Send it',hint:'Catch a full second of air off a ramp',goal:1},
@@ -3502,12 +3483,12 @@ addEventListener('scroll',mcta,{passive:true});
         skP.set(hp.x+skN.x*.035,hp.y+skN.y*.035,hp.z+skN.z*.035);skM.compose(skP,skQ,skS);
         skid.setMatrixAt(skI,skM);skI=(skI+1)%SKN;skid.count=Math.min(SKN,skid.count+1);skid.instanceMatrix.needsUpdate=true}}
     if(active&&driving){const cp=car.position;
-      for(let i=0;i<plateList.length;i++){const P=plateList[i];if(P.got)continue;
+      for(let i=0;i<coinList.length;i++){const P=coinList[i];if(P.got)continue;
         P.g.rotation.y+=dt*2.2;P.g.position.y=P.y0+Math.sin(now/420+P.ph)*.16;
         const dx=P.g.position.x-cp.x,dz=P.g.position.z-cp.z;
-        if(dx*dx+dz*dz<3.3*3.3&&Math.abs(P.g.position.y-cp.y)<3){P.got=true;P.g.visible=false;platesGot++;plateKg+=P.kg*2;
-          blip(640+P.kg*14,.14,.1);toastMsg('+'+P.kg+' kg a side \u00b7 '+plateKg+' kg on the bar ('+platesGot+'/'+plateList.length+')');missSet('plates',platesGot);
-          if(platesGot===plateList.length)setTimeout(()=>toastMsg('Every plate loaded. '+plateKg+' kg. Lift it.'),1800)}}
+        if(dx*dx+dz*dz<3.3*3.3&&Math.abs(P.g.position.y-cp.y)<3){P.got=true;P.g.visible=false;coinsGot++;
+          blip(920,.12,.08);toastMsg('Coin \u00b7 '+coinsGot+'/'+coinList.length);missSet('plates',coinsGot);
+          if(coinsGot===coinList.length)setTimeout(()=>toastMsg('All coins collected'),1800)}}
       padCool=Math.max(0,padCool-dt);
       if(padList.mat)padList.mat.opacity=.6+.3*Math.sin(now/170);
       if(padCool<=0)for(let i=0;i<padList.length;i++){const Q=padList[i],dx=Q.x-cp.x,dz=Q.z-cp.z;
@@ -3566,7 +3547,7 @@ addEventListener('scroll',mcta,{passive:true});
       guideArrow.position.set(car.position.x,car.position.y+3.6+Math.sin(now/260)*.15,car.position.z);guideArrow.rotation.y=yawT;guideArrow.visible=dist>22&&!cineOn;
       const q=chassisB.quaternion,yawC=Math.atan2(2*(q.w*q.y+q.x*q.z),1-2*(q.y*q.y+q.z*q.z));let rel=yawT-yawC;rel=Math.atan2(Math.sin(rel),Math.cos(rel));
       objArrow.style.transform='rotate('+(-rel*180/Math.PI)+'deg)';
-      if(frameN%6===0)objTxt.textContent=nx?('Next · Chapter '+nx.chapter+' · '+nx.name+' · '+Math.round(dist)+' m'):('Finish · Trial gate · '+Math.round(dist)+' m');
+      if(frameN%6===0)objTxt.textContent=nx?('Next · Chapter '+nx.chapter+' · '+nx.name+' · '+Math.round(dist)+' m'):('Finish line · '+Math.round(dist)+' m');
       const tg=at(progU).tg;fwd.set(0,0,1).applyQuaternion(car.quaternion);wrongEl.classList.toggle('on',sp>4&&(fwd.x*tg.x+fwd.z*tg.z)<-.5&&dist>22&&!inPond)}
     stepWx(Math.min(.05,dt));
     fwd.set(0,0,1).applyQuaternion(car.quaternion);fwd.y=0;fwd.normalize();
@@ -3849,7 +3830,7 @@ addEventListener('scroll',mcta,{passive:true});
     results:{mode:'flex',hello:"My numbers, not a pitch.",tips:["68 to 102 kg, 520 kg total across squat, bench and deadlift.","More on Instagram @swastikk.m."]},
     nope:{mode:'idle',hello:"Honest filter. Read it twice.",tips:["If you want abs in 21 days, this isn't it. If you'll show up three days a week, it is."]},
     apply:{mode:'point',hello:"Two minutes, mostly taps.",tips:["9 quick questions. Mostly taps.","Your answers save if you close the tab. I reply on WhatsApp."]},
-    game:{mode:'point',hello:"Follow the arrow. Each billboard is a chapter.",tips:["Arrow above the car points to the next chapter. The beam of light marks it.","Stop near a billboard or a lifter and press E (or tap the prompt) to look closer.","The sky changes as the story does — you don't have to touch a thing.","The hill loads the deadlift as you climb. The pond is inside the loop, drive in and swim.","Weight plates float over the road. Drive through them to load the bar.","Yellow chevrons on the straights are boost pads.","Lost? M opens the map. R puts you back on the road."]},
+    game:{mode:'point',hello:"Follow the arrow. Each billboard is a chapter.",tips:["Arrow above the car points to the next chapter. The beam of light marks it.","Stop near a billboard or a lifter and press E (or tap the prompt) to look closer.","The sky changes as the story does — you don't have to touch a thing.","The hill loads the deadlift as you climb. The pond is inside the loop, drive in and swim.","Gold coins are scattered along the road. Collect them as you drive.","Yellow chevrons on the straights are boost pads.","Lost? M opens the map. R puts you back on the road."]},
   };
   const STOPS=[['drive','Drive'],['trans','Proof'],['price','Price'],['apply','Apply']];
   let cur='',tmr,tipI=0;
