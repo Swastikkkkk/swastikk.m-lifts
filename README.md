@@ -37,6 +37,10 @@ whether or not this repo is. Values that must stay secret live in
 Only outside requests are Google Fonts and three cdnjs script tags (three.js
 r128, cannon.js 0.6.2, GSAP 3.12.5 with ScrollTrigger and Lenis).
 
+**Live:** [swastikk-m.vercel.app](https://swastikk-m.vercel.app)
+
+![Swastik Lifts social preview](assets/og.jpg)
+
 The driving section degrades on its own: it checks for WebGL and
 `prefers-reduced-motion`, watches real framerate and steps shadows and
 resolution down to match, and is skipped entirely rather than shown broken if
