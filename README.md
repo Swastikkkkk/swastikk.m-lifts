@@ -22,8 +22,11 @@ python3 -m http.server 8000
 
 ## Deploy it
 
-See `docs/DEPLOY.md`. Short version: replace the four ALL-CAPS placeholders,
-push, turn on GitHub Pages.
+Deployed on Vercel from this repo (`vercel.json`), live at
+[swastikk-m.vercel.app](https://swastikk-m.vercel.app). Applications go
+straight to WhatsApp, so the live site needs no server. `backend/code.gs` is an
+optional Google Sheet logger, not wired into the live page; `docs/DEPLOY.md`
+explains how to turn it on.
 
 ## On secrets
 
